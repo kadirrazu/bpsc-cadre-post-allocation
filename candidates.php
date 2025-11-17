@@ -5,7 +5,7 @@ $candidates = [
         'reg_no' => '20250001',
         'user_id' => 'USR1A2BC34',
         'cadre_category' => 'GG',
-        'general_merit_position' => 5,
+        'general_merit_position' => 23,
         'technical_merit_position' => null,
         'choice_list' => 'FRGN ADMN CUST COOP FAMP',
         'quota' => [
@@ -19,8 +19,8 @@ $candidates = [
         'user_id' => 'USR9X8Y7Z6',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
-        'technical_merit_position' => ['HLTH' => 3, 'ROME' => 7],
-        'choice_list' => 'HLTH ROME EDUC',
+        'technical_merit_position' => ['ENPH' => 6, 'ROME' => 7],
+        'choice_list' => 'HLTH ROME ENPH',
         'quota' => [
             'CFF' => true,
             'EM' => false,
@@ -46,7 +46,7 @@ $candidates = [
         'cadre_category' => 'GG',
         'general_merit_position' => 2,
         'technical_merit_position' => null,
-        'choice_list' => 'ADMN FRGN ECON CUST',
+        'choice_list' => 'ADMN ECON FRGN CUST',
         'quota' => [
             'CFF' => false,
             'EM' => false,
@@ -58,10 +58,10 @@ $candidates = [
         'user_id' => 'USR5T6U7V8',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
-        'technical_merit_position' => ['TXTL' => 4, 'ENPW' => 9],
-        'choice_list' => 'TXTL ENPW FORE',
+        'technical_merit_position' => ['TXTL' => 4, 'ENPH' => 9],
+        'choice_list' => 'ENPH TXTL FORE',
         'quota' => [
-            'CFF' => true,
+            'CFF' => false,
             'EM' => true,
             'PHC' => false
         ]
@@ -107,7 +107,7 @@ $candidates = [
         'cadre_category' => 'GT',
         'general_merit_position' => 3,
         'technical_merit_position' => ['HLTH' => 8],
-        'choice_list' => 'FRGN HLTH ADMN',
+        'choice_list' => 'FRGN ADMN HLTH',
         'quota' => [
             'CFF' => true,
             'EM' => false,
@@ -128,8 +128,8 @@ $candidates = [
         'user_id' => 'USR1G2H3I4',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
-        'technical_merit_position' => ['AGRI' => 5, 'FISH' => 11],
-        'choice_list' => 'FORE',
+        'technical_merit_position' => ['HLTH' => 5, 'FISH' => 11],
+        'choice_list' => 'FORE HLTH',
         'quota' => [
             'CFF' => true,
             'EM' => false,
@@ -176,11 +176,11 @@ $candidates = [
         'user_id' => 'USR4W3E2R1',
         'cadre_category' => 'GT',
         'general_merit_position' => 22,
-        'technical_merit_position' => ['TXTL' => 9],
-        'choice_list' => 'TXTL ADMN COOP',
+        'technical_merit_position' => ['ENPH' => 1],
+        'choice_list' => 'ENPH ADMN COOP',
         'quota' => [
             'CFF' => false,
-            'EM' => true,
+            'EM' => false,
             'PHC' => true
         ]
     ],
@@ -190,7 +190,7 @@ $candidates = [
         'cadre_category' => 'GG',
         'general_merit_position' => 4,
         'technical_merit_position' => null,
-        'choice_list' => 'FRGN ADMN RAil',
+        'choice_list' => 'FRGN ADMN RAIL',
         'quota' => [
             'CFF' => true,
             'EM' => false,
@@ -203,7 +203,7 @@ $candidates = [
         'cadre_category' => 'TT',
         'general_merit_position' => null,
         'technical_merit_position' => ['ROME' => 11],
-        'choice_list' => 'ROME ENPW ENWD',
+        'choice_list' => 'ROME ENPW EDUC',
         'quota' => [
             'CFF' => false,
             'EM' => true,
@@ -215,8 +215,8 @@ $candidates = [
         'user_id' => 'USR2V3B4N5',
         'cadre_category' => 'GT',
         'general_merit_position' => 11,
-        'technical_merit_position' => ['FORE' => 4],
-        'choice_list' => 'FORE ADMN FAMP',
+        'technical_merit_position' => ['EDUC' => 4],
+        'choice_list' => 'EDUC ADMN FAMP',
         'quota' => [
             'CFF' => false,
             'EM' => false,
@@ -237,8 +237,8 @@ $candidates = [
         'user_id' => 'USR9P8O7I6',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
-        'technical_merit_position' => ['ARCH' => 3],
-        'choice_list' => 'ARCH ENWD ENPW',
+        'technical_merit_position' => ['ENPW' => 3],
+        'choice_list' => 'FORE ENWD ENPW',
         'quota' => [
             'CFF' => true,
             'EM' => false,

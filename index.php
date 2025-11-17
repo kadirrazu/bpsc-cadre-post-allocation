@@ -11,7 +11,7 @@ include "data-processing.php";
 <html lang="en">
     <head>
     <meta charset="utf-8">
-    <title>BCS Exam Cadre Allocation — Results</title>
+    <title>BCS Exam Cadre Allocation — Results - Single Candidate Single Pass</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
@@ -142,6 +142,9 @@ include "data-processing.php";
                         <th class="text-center">#</th>
                         <th class="text-center">Reg No</th>
                         <th class="text-center">Category</th>
+                        <th class="text-center">Merit Position (General)</th>
+                        <th class="text-center">Merit Position (Tech)</th>
+                        <th class="text-center">Quota</th>
                         <th class="text-center">Choices</th>
                     </tr>
                 </thead>
@@ -158,6 +161,37 @@ include "data-processing.php";
                     </td>
                     <td class="text-center">
                         <?= htmlspecialchars($r['candidate']['cadre_category']) ?>
+                    </td>
+                    <td class="text-center">
+                        <?= htmlspecialchars($r['candidate']['general_merit_position'] ?? '-') ?>
+                    </td>
+                    <td class="text-center">
+                        <?php 
+                            if(isset($r['candidate']['technical_merit_position']))
+                            {
+                                foreach( $r['candidate']['technical_merit_position'] as $key => $value ){
+                                    print $key .'-'. $value . '<br>';
+                                }
+                            }
+                        ?>
+                    </td>
+                    <td class="text-center">
+                        <?php 
+                            if(isset($r['candidate']['quota']))
+                            {
+                                foreach( $r['candidate']['quota'] as $key => $value ){
+                                    if($key == 'CFF' && $value == 1){
+                                        echo $key . '<br>';
+                                    }
+                                    else if($key == 'EM' && $value == 1){
+                                       echo $key . '<br>'; 
+                                    }
+                                    else if($key == 'PHC' && $value == 1){
+                                        echo $key . '<br>';
+                                    }
+                                }
+                            }
+                        ?>
                     </td>
                     <td>
                         <?= htmlspecialchars($r['candidate']['choice_list']) ?>
