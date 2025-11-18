@@ -98,7 +98,7 @@ $candidates = [
         'user_id' => 'USR9Q8W7E6',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
-        'global_tech_merit' => 1650,
+        'global_tech_merit' => 32,
         'technical_merit_position' => ['ENPH' => 2],
         'choice_list' => 'ENPH EDUC HLTH',
         'quota' => [
@@ -186,7 +186,7 @@ $candidates = [
         'user_id' => 'USR4W3E2R1',
         'cadre_category' => 'GT',
         'general_merit_position' => 22,
-        'global_tech_merit' => 99,
+        'global_tech_merit' => 3,
         'technical_merit_position' => ['ENPH' => 1],
         'choice_list' => 'ENPH ADMN COOP',
         'quota' => [
