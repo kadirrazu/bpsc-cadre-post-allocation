@@ -19,6 +19,7 @@ $candidates = [
         'user_id' => 'USR9X8Y7Z6',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
+        'global_tech_merit' => 230,
         'technical_merit_position' => ['ENPH' => 6, 'ROME' => 7],
         'choice_list' => 'HLTH ROME ENPH',
         'quota' => [
@@ -32,6 +33,7 @@ $candidates = [
         'user_id' => 'USR7K6L5M4',
         'cadre_category' => 'GT',
         'general_merit_position' => 12,
+        'global_tech_merit' => 124,
         'technical_merit_position' => ['ENPH' => 5],
         'choice_list' => 'ADMN ENPH FRGN',
         'quota' => [
@@ -58,6 +60,7 @@ $candidates = [
         'user_id' => 'USR5T6U7V8',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
+        'global_tech_merit' => 2300,
         'technical_merit_position' => ['TXTL' => 9, 'ENPH' => 9],
         'choice_list' => 'ENPH TXTL FORE',
         'quota' => [
@@ -71,6 +74,7 @@ $candidates = [
         'user_id' => 'USR3A4B5C6',
         'cadre_category' => 'GT',
         'general_merit_position' => 18,
+        'global_tech_merit' => 15,
         'technical_merit_position' => ['ROME' => 6, 'EDUC' => 10],
         'choice_list' => 'EDUC ROME ADMN CUST',
         'quota' => [
@@ -85,6 +89,7 @@ $candidates = [
         'cadre_category' => 'GG',
         'general_merit_position' => 9,
         'technical_merit_position' => null,
+        'global_tech_merit' => 38,
         'choice_list' => 'INFO ADMN COOP TRAD',
         'quota' => null
     ],
@@ -93,6 +98,7 @@ $candidates = [
         'user_id' => 'USR9Q8W7E6',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
+        'global_tech_merit' => 1650,
         'technical_merit_position' => ['ENPH' => 2],
         'choice_list' => 'ENPH EDUC HLTH',
         'quota' => [
@@ -106,6 +112,7 @@ $candidates = [
         'user_id' => 'USR8L7M6N5',
         'cadre_category' => 'GT',
         'general_merit_position' => 35,
+        'global_tech_merit' => 12,
         'technical_merit_position' => ['TXTL' => 8],
         'choice_list' => 'FRGN ADMN TXTL',
         'quota' => [
@@ -128,6 +135,7 @@ $candidates = [
         'user_id' => 'USR1G2H3I4',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
+        'global_tech_merit' => 18,
         'technical_merit_position' => ['HLTH' => 5, 'FISH' => 11],
         'choice_list' => 'FORE HLTH',
         'quota' => [
@@ -141,6 +149,7 @@ $candidates = [
         'user_id' => 'USR9B8C7D6',
         'cadre_category' => 'GT',
         'general_merit_position' => 6,
+        'global_tech_merit' => 19,
         'technical_merit_position' => ['ENPW' => 7],
         'choice_list' => 'ENPW ADMN RAIL',
         'quota' => [
@@ -167,6 +176,7 @@ $candidates = [
         'user_id' => 'USR2M3N4O5',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
+        'global_tech_merit' => 125,
         'technical_merit_position' => ['EDUC' => 12],
         'choice_list' => 'EDUC HLTH ENPH',
         'quota' => null
@@ -176,6 +186,7 @@ $candidates = [
         'user_id' => 'USR4W3E2R1',
         'cadre_category' => 'GT',
         'general_merit_position' => 22,
+        'global_tech_merit' => 99,
         'technical_merit_position' => ['ENPH' => 1],
         'choice_list' => 'ENPH ADMN COOP',
         'quota' => [
@@ -202,6 +213,7 @@ $candidates = [
         'user_id' => 'USR8Q7W6E5',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
+        'global_tech_merit' => 185,
         'technical_merit_position' => ['ROME' => 11],
         'choice_list' => 'ROME ENPW EDUC',
         'quota' => [
@@ -215,6 +227,7 @@ $candidates = [
         'user_id' => 'USR2V3B4N5',
         'cadre_category' => 'GT',
         'general_merit_position' => 11,
+        'global_tech_merit' => 3,
         'technical_merit_position' => ['EDUC' => 4],
         'choice_list' => 'EDUC ADMN FAMP',
         'quota' => [
@@ -228,6 +241,7 @@ $candidates = [
         'user_id' => 'USR1C2V3B4',
         'cadre_category' => 'GG',
         'general_merit_position' => 20,
+        'global_tech_merit' => 27,
         'technical_merit_position' => null,
         'choice_list' => 'ADMN TRAD INFO',
         'quota' => null
@@ -237,6 +251,7 @@ $candidates = [
         'user_id' => 'USR9P8O7I6',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
+        'global_tech_merit' => 925,
         'technical_merit_position' => ['ENPW' => 3],
         'choice_list' => 'FORE ENWD ENPW',
         'quota' => [

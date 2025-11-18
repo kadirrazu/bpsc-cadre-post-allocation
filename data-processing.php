@@ -1,231 +1,305 @@
-<?php
-// ====================== HELPER FUNCTIONS ======================
+<?php 
 
-function get_primary_merit($candidate) {
-    if (!empty($candidate['general_merit_position'])) return $candidate['general_merit_position'];
-    if (!empty($candidate['technical_merit_position']) && is_array($candidate['technical_merit_position'])) {
-        return min($candidate['technical_merit_position']);
+// ----------------- ASSUMES THESE ARE INCLUDED/DEFINED -----------------
+// $general_cadres, $technical_cadres, $post_available, $candidates
+// (You provided these in earlier messages)
+
+// ----------------- PREP -----------------
+
+function in_array_recursive($needle, $haystack, $strict = false) {
+    foreach ($haystack as $item) {
+        if ($item == $needle && !$strict) {
+            return true;
+        } elseif ($item === $needle && $strict) {
+            return true;
+        } elseif (is_array($item) && in_array_recursive($needle, $item, $strict)) {
+            return true;
+        }
     }
-    return PHP_INT_MAX;
+    return false;
 }
 
-function get_technical_merit($candidate, $cadre) {
-    return $candidate['technical_merit_position'][$cadre] ?? PHP_INT_MAX;
-}
-
-function eligible_for_quota($candidate, $quota) {
-    return !empty($candidate['quota'][$quota]);
-}
-
-function detect_cadre_type($cadre, $general_cadres, $technical_cadres) {
-    if (isset($general_cadres['GENERAL'][$cadre])) return 'GENERAL';
-    if (isset($technical_cadres['TECHNICAL'][$cadre])) return 'TECHNICAL';
-    return null;
-}
-
-// ====================== PREPARE DATA ======================
-
+// Index posts by short cadre name for O(1) lookup
 $postsByCadre = [];
-foreach ($post_available as $code => $data) {
-    $postsByCadre[$data['cadre']] = $code;
+foreach ($post_available as $code => $p) {
+    $postsByCadre[$p['cadre']] = $code;
 }
 
-foreach ($candidates as &$c) {
-    $c['choices'] = isset($c['choice_list']) ? array_map('strtoupper', array_filter(array_map('trim', explode(' ', $c['choice_list'])))) : [];
-    $c['allocated'] = false;
-    $c['assigned_post'] = null;
-    $c['assigned_quota'] = null;
-    $c['type'] = null;
+// Normalize candidate choices and ensure structures exist
+foreach ($candidates as &$candidate) {
+    // ensure quota array exists
+    if (!isset($candidate['quota']) || !is_array($candidate['quota'])) {
+        $candidate['quota'] = ['CFF' => false, 'EM' => false, 'PHC' => false];
+    }
+    // ensure technical merit structure exists
+    if (!isset($candidate['technical_merit_position']) || !is_array($candidate['technical_merit_position'])) {
+        $candidate['technical_merit_position'] = [];
+    }
+    // normalize choices as uppercase tokens
+    if (isset($candidate['choice_list'])) {
+        $candidate['choices'] = array_values(array_filter(array_map('strtoupper', array_map('trim', explode(' ', $candidate['choice_list'])))));
+    } else {
+        $candidate['choices'] = [];
+    }
 }
-unset($c);
+unset($candidate);
 
+// Copy working posts remaining
 $post_remaining = $post_available;
 
-// Separate candidates
-$general_candidates = array_filter($candidates, fn($c) => in_array($c['cadre_category'], ['GG','GT']));
-$technical_candidates = array_filter($candidates, fn($c) => $c['cadre_category'] === 'TT');
+// ----------------- 1) GENERAL ALLOCATION (GG + GT's general choices) -----------------
 
-usort($general_candidates, fn($a,$b) => ($a['general_merit_position'] ?? PHP_INT_MAX) <=> ($b['general_merit_position'] ?? PHP_INT_MAX));
+// Build list of candidates to consider for GENERAL allocation
+$gen_candidates = [];
 
-usort($technical_candidates, function($a,$b){
-    $a_merit = !empty($a['technical_merit_position']) ? min($a['technical_merit_position']) : PHP_INT_MAX;
-    $b_merit = !empty($b['technical_merit_position']) ? min($b['technical_merit_position']) : PHP_INT_MAX;
-    return $a_merit <=> $b_merit;
+foreach ($candidates as $cand) {
+    // Only GG and GT candidates are considered in general flow
+    if ($cand['cadre_category'] === 'GG' || $cand['cadre_category'] === 'GT') {
+        // collect only general choices (preserve original order)
+        $gen_choices = [];
+        foreach ($cand['choices'] as $ch) {
+            if (isset($general_cadres['GENERAL'][$ch])) $gen_choices[] = $ch;
+        }
+        // keep candidates who have at least one general choice
+        if (!empty($gen_choices)) {
+            $copy = $cand;
+            $copy['gen_choices'] = $gen_choices;
+            $gen_candidates[] = $copy;
+        }
+    }
+}
+
+// Sort general candidates by general merit (ascending: 1 best)
+usort($gen_candidates, function($a, $b) {
+    $aPos = $a['general_merit_position'] ?? PHP_INT_MAX;
+    $bPos = $b['general_merit_position'] ?? PHP_INT_MAX;
+    return $aPos <=> $bPos;
 });
 
-// ====================== ALLOCATION ======================
+// ----------------- 1) TECHNICAL ALLOCATION (TT + GT's technical choices) -----------------
 
-function allocate_candidates(&$candidates, &$post_remaining, $postsByCadre, $cadreType, &$final_allocation, $general_cadres, $technical_cadres) {
-    foreach ($candidates as &$c) {
-        if ($c['allocated']) continue;
+// Build list of candidates to consider for GENERAL allocation
+$tec_candidates = [];
 
-        foreach ($c['choices'] as $choice) {
+foreach ($candidates as $cand) {
+    // Only GG and GT candidates are considered in general flow
+    if ($cand['cadre_category'] === 'GT' || $cand['cadre_category'] === 'TT') {
+        // collect only general choices (preserve original order)
+        $tec_choices = [];
+        foreach ($cand['choices'] as $ch) {
+            if (isset($technical_cadres['TECHNICAL'][$ch])) $tec_choices[] = $ch;
+        }
+        // keep candidates who have at least one general choice
+        if (!empty($tec_choices)) {
+            $copy = $cand;
+            $copy['tec_choices'] = $tec_choices;
+            $tec_candidates[] = $copy;
+        }
+    }
+}
 
-        // Determine candidate type for this choice
-        $choice_type = isset($c['technical_merit_position'][$choice]) ? 'TECHNICAL' : 'GENERAL';
-        
-        // Skip technical choice if candidate not eligible
-        if ($choice_type === 'TECHNICAL' && empty($c['technical_merit_position'][$choice])) continue;
+// Sort general candidates by general merit (ascending: 1 best)
+usort($tec_candidates, function($a, $b) {
+    $aPos = $a['global_tech_merit'] ?? PHP_INT_MAX;
+    $bPos = $b['global_tech_merit'] ?? PHP_INT_MAX;
+    return $aPos <=> $bPos;
+});
+
+
+echo '<h3>All Candidates: </h3>';
+
+$i = 1;
+foreach($candidates as $candidate){
+ print( sprintf("%02d", $i) . ' - ' . $candidate['reg_no'] .' - '. $candidate['cadre_category'] .' - '. $candidate['choice_list'] . '<br>');
+ $i++;
+}
+
+echo '<br>';
+echo '<br>';
+
+echo '<h3>General Candidates: </h3>';
+
+$i = 1;
+
+foreach($gen_candidates as $candidate)
+{
+
+ echo sprintf("%02d", $i) . ' - ' . $candidate['reg_no'] . ' - ' . $candidate['cadre_category'];
+
+ if(is_array($candidate['gen_choices'])){
+    echo ' - ';
+    foreach( $candidate['gen_choices'] as $key => $val )
+    {
+        echo $val . ' ';
+    }
+    echo '<br>';
+ }
+
+ $i++;
+
+}
+
+
+echo '<br>';
+echo '<br>';
+
+echo '<h3>Technical Candidates: </h3>';
+
+$i = 1;
+
+foreach($tec_candidates as $candidate)
+{
+
+ echo sprintf("%02d", $i) . ' - ' . $candidate['reg_no'] . ' - ' . $candidate['cadre_category'];
+
+ if(is_array($candidate['tec_choices'])){
+    echo ' - ';
+    foreach( $candidate['tec_choices'] as $key => $val )
+    {
+        echo $val . ' ';
+    }
+    echo '<br>';
+ }
+
+ $i++;
+ 
+}
+
+$final_allocation_general = [];            // holds all allocations
+$assigned_regno = [];              // map reg_no => true when someone gets a post (to prevent double-assign)
+$not_assigned_after_general = [];  // to track GT/TT who still eligible for tech flow
+
+$general_reg = [];
+
+// Process general candidates
+foreach ($gen_candidates as $cand) {
+
+    $assigned = false;
+
+    foreach ($cand['gen_choices'] as $choice) {
 
         if (!isset($postsByCadre[$choice])) continue;
 
         $postCode = $postsByCadre[$choice];
 
-        // MERIT
-        if (($post_remaining[$postCode]['MQ'] ?? 0) > 0) {
-            $post_remaining[$postCode]['MQ']--;
-            $c['allocated'] = true;
-            $c['assigned_post'] = $choice;
-            $c['assigned_quota'] = 'MERIT';
-            $c['type'] = $choice_type;
+        // MERIT seat: only if candidate has a general_merit_position (GG or GT will have it)
+        $canUseMerit = (!empty($cand['general_merit_position'])) && (($post_remaining[$postCode]['MQ'] ?? 0) > 0);
 
-            $final_allocation[] = [
-                'candidate' => $c,
-                'cadre' => $choice,
-                'quota' => 'MERIT',
-                'type' => $choice_type
-            ];
+        if ($canUseMerit) {
+            $post_remaining[$postCode]['MQ']--;
+            $final_allocation_general[] = ['candidate'=>$cand, 'cadre'=>$choice, 'quota'=>'MERIT', 'type'=>'GENERAL'];
+            $assigned = true;
+            $assigned_regno[$cand['reg_no']] = true;
+            $general_reg[] = $cand['reg_no'];
             break;
         }
 
-        // QUOTA
-        foreach (['CFF','EM','PHC'] as $quota) {
-            if (($post_remaining[$postCode][$quota] ?? 0) > 0 && eligible_for_quota($c, $quota)) {
-                $post_remaining[$postCode][$quota]--;
-                $c['allocated'] = true;
-                $c['assigned_post'] = $choice;
-                $c['assigned_quota'] = $quota;
-                $c['type'] = $choice_type;
-
-                $final_allocation[] = [
-                    'candidate' => $c,
-                    'cadre' => $choice,
-                    'quota' => $quota,
-                    'type' => $choice_type
-                ];
-                break 2;
+        // QUOTA (CFF -> EM -> PHC) - candidate may be eligible for one or multiple flags; check in order
+        foreach (['CFF','EM','PHC'] as $q) {
+            if (!empty($cand['quota'][$q]) && (($post_remaining[$postCode][$q] ?? 0) > 0)) {
+                $post_remaining[$postCode][$q]--;
+                $final_allocation_general[] = ['candidate'=>$cand, 'cadre'=>$choice, 'quota'=>$q, 'type'=>'GENERAL'];
+                $assigned = true;
+                $assigned_regno[$cand['reg_no']] = true;
+                $general_reg[] = $cand['reg_no'];
+                break 2; // assigned via quota, stop candidate's choice loop
             }
         }
-
+        // else try next general choice
     }
 
-        if (!$c['allocated']) {
-            $final_allocation[] = [
-                'candidate' => $c,
-                'cadre' => null,
-                'quota' => null,
-                'type' => null
-            ];
-        }
+    if (!$assigned) {
+        // Keep candidate for possible technical allocation later (only if TT/GT had technical choices)
+        $final_allocation_general[] = ['candidate'=>$cand, 'cadre'=>null, 'quota'=>null, 'type'=>null];
+        // We'll let the tech flow decide if the candidate (GT) can be assigned later
     }
-    unset($c);
 }
 
-// ====================== INITIAL ALLOCATION ======================
+echo '<h3>General Allocation:</h3>';
 
-$final_allocation = [];
-allocate_candidates($general_candidates, $post_remaining, $postsByCadre, 'GENERAL', $final_allocation, $general_cadres, $technical_cadres);
-allocate_candidates($technical_candidates, $post_remaining, $postsByCadre, 'TECHNICAL', $final_allocation, $general_cadres, $technical_cadres);
-
-// ====================== SWAP OPTIMIZATION ======================
-
-function swap_optimization(&$final_allocation, $postsByCadre, &$post_remaining, $general_cadres, $technical_cadres) {
-    $max_iterations = 5;
-    $iteration = 0;
-
-    do {
-        $swapped = false;
-        foreach ($final_allocation as &$c1) {
-            if (empty($c1['cadre'])) continue;
-            $current_post = $c1['cadre'];
-
-            foreach ($c1['candidate']['choices'] as $better_choice) {
-                if ($better_choice === $current_post) break;
-                $better_code = $postsByCadre[$better_choice] ?? null;
-                if (!$better_code) continue;
-
-                // only swap if post has no vacancy
-                $mq_left = $post_remaining[$better_code]['MQ'] ?? 0;
-                $quota_left = array_sum(array_intersect_key($post_remaining[$better_code], array_flip(['CFF','EM','PHC'])));
-                if ($mq_left + $quota_left > 0) continue;
-
-                foreach ($final_allocation as &$c2) {
-                    if ($c2['cadre'] !== $better_choice) continue;
-
-                    // Technical eligibility check for candidate1
-                    $c1_type_candidate = ($c1['type'] === 'TECHNICAL' || $c1['cadre_category'] === 'GT') ? 'TECHNICAL' : 'GENERAL';
-                    if ($c1_type_candidate === 'TECHNICAL' && empty($c1['candidate']['technical_merit_position'][$better_choice])) continue;
-
-                    $merit_c1 = $c1_type_candidate === 'TECHNICAL' ? get_technical_merit($c1['candidate'], $better_choice) : ($c1['candidate']['general_merit_position'] ?? PHP_INT_MAX);
-                    $merit_c2 = $c2['type'] === 'TECHNICAL' ? get_technical_merit($c2['candidate'], $better_choice) : ($c2['candidate']['general_merit_position'] ?? PHP_INT_MAX);
-
-                    if ($merit_c1 < $merit_c2) {
-                        $temp_post = $c1['cadre']; $temp_quota = $c1['quota']; $temp_type = $c1['type'];
-                        $c1['cadre'] = $c2['cadre']; $c1['quota'] = $c2['quota'];
-                        $c1['type'] = detect_cadre_type($c2['cadre'], $general_cadres, $technical_cadres);
-
-                        $c2['cadre'] = $temp_post; $c2['quota'] = $temp_quota;
-                        $c2['type'] = detect_cadre_type($temp_post, $general_cadres, $technical_cadres);
-
-                        $swapped = true;
-                        break;
-                    }
-                }
-                unset($c2);
-                if ($swapped) break;
-            }
-            if ($swapped) break;
-        }
-        unset($c1);
-    } while ($swapped && ++$iteration <= $max_iterations);
+foreach($final_allocation_general as $allocated){
+    echo $allocated['candidate']['reg_no'] . ' - ' . $allocated['candidate']['cadre_category'] . ' - ' . (isset($allocated['cadre']) ? $allocated['cadre'] : 'NON ALLOCATED') . ' - '  . (isset($allocated['quota']) ? $allocated['quota'] : '') . '<br>';
 }
 
-swap_optimization($final_allocation, $postsByCadre, $post_remaining, $general_cadres, $technical_cadres);
+$final_allocation_technical = [];            // holds all allocations
+$assigned_regno = [];              // map reg_no => true when someone gets a post (to prevent double-assign)
+$not_assigned_after_technical = [];  // to track GT/TT who still eligible for tech flow
 
-// ====================== NATIONAL MERIT (NM) FILL ======================
+$technical_reg = [];
 
-foreach ($final_allocation as &$c) {
-    if ($c['cadre'] !== null) continue;
-    foreach ($c['candidate']['choices'] as $choice) {
-        $postCode = $postsByCadre[$choice] ?? null; if (!$postCode) continue;
+// Process general candidates
+foreach ($tec_candidates as $cand) {
 
-        if (($post_remaining[$postCode]['MQ'] ?? 0) > 0) {
+    $assigned = false;
+
+    foreach ($cand['tec_choices'] as $choice) {
+
+        if (!isset($postsByCadre[$choice])) continue;
+
+        $postCode = $postsByCadre[$choice];
+
+        // MERIT seat: only if candidate has a general_merit_position (GG or GT will have it)
+        $canUseMerit = (!empty($cand['global_tech_merit'])) && (($post_remaining[$postCode]['MQ'] ?? 0) > 0);
+
+        if ($canUseMerit) {
             $post_remaining[$postCode]['MQ']--;
-            $c['cadre'] = $choice;
-            $c['quota'] = 'NM';
-            $c['type'] = detect_cadre_type($choice, $general_cadres, $technical_cadres);
+            $final_allocation_technical[] = ['candidate'=>$cand, 'cadre'=>$choice, 'quota'=>'MERIT', 'type'=>'TECHNICAL'];
+            $assigned = true;
+            $assigned_regno[$cand['reg_no']] = true;
+            $technical_reg[] = $cand['reg_no'];
             break;
         }
 
-        foreach (['CFF','EM','PHC'] as $quota) {
-            if (($post_remaining[$postCode][$quota] ?? 0) > 0) {
-                $post_remaining[$postCode][$quota]--;
-                $c['cadre'] = $choice;
-                $c['quota'] = 'NM';
-                $c['type'] = detect_cadre_type($choice, $general_cadres, $technical_cadres);
-                break 2;
+        // QUOTA (CFF -> EM -> PHC) - candidate may be eligible for one or multiple flags; check in order
+        foreach (['CFF','EM','PHC'] as $q) {
+            if (!empty($cand['quota'][$q]) && (($post_remaining[$postCode][$q] ?? 0) > 0)) {
+                $post_remaining[$postCode][$q]--;
+                $final_allocation_technical[] = ['candidate'=>$cand, 'cadre'=>$choice, 'quota'=>$q, 'type'=>'TECHNICAL'];
+                $assigned = true;
+                $assigned_regno[$cand['reg_no']] = true;
+                $technical_reg[] = $cand['reg_no'];
+                break 2; // assigned via quota, stop candidate's choice loop
             }
         }
+        // else try next general choice
+    }
+
+    if (!$assigned) {
+        // Keep candidate for possible technical allocation later (only if TT/GT had technical choices)
+        $final_allocation_technical[] = ['candidate'=>$cand, 'cadre'=>null, 'quota'=>null, 'type'=>null];
+        // We'll let the tech flow decide if the candidate (GT) can be assigned later
     }
 }
-unset($c);
 
-// ====================== FINAL SORT BY CADRE CODE ======================
+echo '<h3>Technical Allocation:</h3>';
 
-usort($final_allocation, function($a,$b) use ($general_cadres,$technical_cadres) {
-    $cadreA = $a['cadre'] ?? '';
-    $cadreB = $b['cadre'] ?? '';
-    $codeA = $general_cadres['GENERAL'][$cadreA]['code'] ?? ($technical_cadres['TECHNICAL'][$cadreA]['code'] ?? PHP_INT_MAX);
-    $codeB = $general_cadres['GENERAL'][$cadreB]['code'] ?? ($technical_cadres['TECHNICAL'][$cadreB]['code'] ?? PHP_INT_MAX);
-    return $codeA <=> $codeB;
-});
+foreach($final_allocation_technical as $allocated){
+    echo $allocated['candidate']['reg_no'] . ' - ' . $allocated['candidate']['cadre_category'] . ' - ' . (isset($allocated['cadre']) ? $allocated['cadre'] : 'NON ALLOCATED') . ' - '  . (isset($allocated['quota']) ? $allocated['quota'] : '') . '<br>';
+}
 
-// ============================
-// SPLIT RESULTS
-// ============================
+echo '<h3>Exists in both allocation:</h3>';
 
-$final_general = array_values(array_filter($final_allocation, fn($r)=> $r['type'] === 'GENERAL'));
-$final_technical = array_values(array_filter($final_allocation, fn($r)=> $r['type'] === 'TECHNICAL'));
-$final_unassigned = array_values(array_filter($final_allocation, fn($r)=> $r['type'] === null));
+foreach($candidates as $candidate){
 
-// $final_allocation now fully respects technical eligibility, merit ordering, swap optimization, NM fill, and proper type separation
+    if( (in_array($candidate['reg_no'], $general_reg)) && (in_array($candidate['reg_no'], $technical_reg)) )
+    {
+        echo $candidate['reg_no'] . '<br>';
+    }
+
+    // Find the key of the first occurrence of the value
+    $key = array_search($candidate['reg_no'], $final_allocation_technical);
+
+    var_dump( $key );
+
+    // If the value is found, remove it using unset()
+    /*if ($key !== false) {
+        unset($array[$key]);
+    }*/
+
+
+}
+
+//var_dump( $final_allocation_technical );
+
+
+die();

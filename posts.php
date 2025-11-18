@@ -23,5 +23,5 @@ $post_available = [
     210 => ['cadre' => 'ENPW', 'total_post' => 2, 'MQ' => 2, 'CFF' => 0, 'EM' => 0, 'PHC' => 0],
     212 => ['cadre' => 'ARCH', 'total_post' => 4,  'MQ' => 2,  'CFF' => 1, 'EM' => 1, 'PHC' => 0],
     213 => ['cadre' => 'FORE', 'total_post' => 2, 'MQ' => 1, 'CFF' => 1, 'EM' => 0, 'PHC' => 0],
-    214 => ['cadre' => 'TXTL', 'total_post' => 1,  'MQ' => 1,  'CFF' => 0, 'EM' => 0, 'PHC' => 0],
+    214 => ['cadre' => 'TXTL', 'total_post' => 2,  'MQ' => 2,  'CFF' => 0, 'EM' => 0, 'PHC' => 0],
 ];
