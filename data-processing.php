@@ -44,6 +44,8 @@ $technicalCadres = array_column($technical_cadres['TECHNICAL'], 'abbr');
 
 $allocationQueues = [];
 $finalAllocated = [];
+$finalUnAllocated = [];
+$temporaryAllocated = [];
 $logs = [];
 
 /**
@@ -78,6 +80,7 @@ foreach ($candidates as $candidate) {
     $rawChoiceList = $candidate['choice_list'];
     $choiceList = explode(" ", trim($candidate['choice_list']));
     $category = $candidate['cadre_category'];
+    $globalTechMerit = $candidate['global_tech_merit'] ?? '';
 
     foreach ($choiceList as $choice) {
 
@@ -127,7 +130,9 @@ foreach ($candidates as $candidate) {
         // ADD TO QUEUE
         $allocationQueues[$choice][] = [
             'candidate' => $candidate,
-            'raw_choice_list' => $rawChoiceList
+            'raw_choice_list' => $rawChoiceList,
+            'cadre_category' => $category,
+            'global_tech_merit' => $globalTechMerit,
         ];
 
         addLog($logs, $candidate['reg_no'], "Added to $choice queue.");
@@ -158,139 +163,19 @@ foreach ($allocationQueues as $cadre => &$queue) {
 }
 
 $allocation = [];
-
-foreach ($allocationQueues as $cadre => &$queue) {
-
-    if (!isset($post_available[$abbr_to_code[$cadre]])) continue;
-
-    $remainingPosts = $post_available[$abbr_to_code[$cadre]]['total_post'];
-    if ($remainingPosts <= 0) continue;
-
-    foreach ($queue as $i => $entry) {
-
-        if ($remainingPosts <= 0) break;
-
-        $candidate = $entry['candidate'];
-
-        if (isset($finalAllocated[$candidate['reg_no']])) {
-            continue;
-        }
-
-        $chosenRank = array_search($cadre, explode(" ", $entry['raw_choice_list'])) + 1;
-
-        $allocation[$cadre][] = [
-            'reg_no' => $candidate['reg_no'],
-            'user_id' => $candidate['user_id'],
-            'cadre_code' => $cadre_list['code'][$cadre],
-            'cadre_abbr' => $cadre,
-            'cadre_name' => $cadre_list['name'][$cadre],
-            'quota' => $candidate['quota'] ?? 'GEN',
-            'choice_assigned_rank' => $chosenRank,
-            'raw_choice_list' => $entry['raw_choice_list'],
-            'technical_merit_positions' => formatTechnicalMerit($candidate)
-        ];
-
-        $post_available[$cadre]['total']--;
-        $stillChanging = true;
-
-        addLog($logs, $candidate['reg_no'], "Tentatively allocated to $cadre.");
-    }
-
-}
-
-echo '<pre>';
-
-var_dump( $allocation );
-
-echo '</pre>';
-
-die();
-
-/**
- * MULTIPLE ASSIGNMENT RESOLUTION
- */
-$foundMultiple = false;
-
-foreach ($allocation as $cadre => $list) {
-
-    foreach ($list as $assigned) {
-
-        $reg = $assigned['reg_no'];
-
-        // Count total temporary assignments
-        $count = 0;
-        $foundIn = [];
-
-        foreach ($allocation as $c2 => $l2) {
-            foreach ($l2 as $item) {
-                if ($item['reg_no'] === $reg) {
-                    $count++;
-                    $foundIn[] = $c2;
-                }
-            }
-        }
-
-        if ($count <= 1) continue; // no conflict
-
-        $foundMultiple = true;
-
-        $candidate = null;
-        foreach ($candidates as $c) {
-            if ($c['reg_no'] == $reg) {
-                $candidate = $c;
-                break;
-            }
-        }
-
-        $choiceArray = explode(" ", $candidate['choice_list']);
-
-        // choose highest preference
-        $bestCadre = null;
-        foreach ($choiceArray as $p) {
-            if (in_array($p, $foundIn)) {
-                $bestCadre = $p;
-                break;
-            }
-        }
-
-        // finalize if first preference
-        if ($bestCadre === $choiceArray[0]) {
-            $finalAllocated[$reg] = $bestCadre;
-        }
-
-        // remove from all but bestCadre
-        foreach ($allocation as $cad2 => &$allocList) {
-            foreach ($allocList as $i => $item) {
-                if ($item['reg_no'] == $reg && $cad2 !== $bestCadre) {
-                    unset($allocList[$i]);
-                    $post_available[$cad2]['total']++; // return post
-                }
-            }
-        }
-    }
-}
-
-die();
-
-/**
- * Multi-step allocation iteration
- */
-
-$allocation = [];
-
 $stillChanging = true;
 
-while ($stillChanging) {
+while ($stillChanging) 
+{
     $stillChanging = false;
 
-    foreach ($allocationQueues as $cadre => &$queue) {
+    foreach ($allocationQueues as $cadre => &$queue) 
+    {
 
-        if (!isset($post_available[$cadre])) continue;
+        if (!isset($post_available[$abbr_to_code[$cadre]])) continue;
 
-        $remainingPosts = $post_available[$cadre]['total'];
+        $remainingPosts = $post_available[$abbr_to_code[$cadre]]['total_post'];
         if ($remainingPosts <= 0) continue;
-
-        print_r($queue);
 
         foreach ($queue as $i => $entry) {
 
@@ -299,7 +184,6 @@ while ($stillChanging) {
             $candidate = $entry['candidate'];
 
             if (isset($finalAllocated[$candidate['reg_no']])) {
-                addLog($logs, $candidate['reg_no'], "Already finalized elsewhere. Skipped in $cadre.");
                 continue;
             }
 
@@ -308,20 +192,24 @@ while ($stillChanging) {
             $allocation[$cadre][] = [
                 'reg_no' => $candidate['reg_no'],
                 'user_id' => $candidate['user_id'],
-                'cadre_code' => $cadre_list['code'][$cadre],
+                'cadre_code' => $cadre,
                 'cadre_abbr' => $cadre,
-                'cadre_name' => $cadre_list['name'][$cadre],
-                'quota' => $candidate['quota'] ?? 'GEN',
+                'cadre_name' => $abbr_to_code[$cadre],
+                'quota' => $candidate['quota'] ?? null,
                 'choice_assigned_rank' => $chosenRank,
                 'raw_choice_list' => $entry['raw_choice_list'],
+                'cadre_category' => $entry['cadre_category'],
+                'global_tech_merit' => $entry['global_tech_merit'],
+                'general_merit_position' => $candidate['general_merit_position'] ?? null,
                 'technical_merit_positions' => formatTechnicalMerit($candidate)
             ];
 
-            $post_available[$cadre]['total']--;
+            $post_available[$abbr_to_code[$cadre]]['total_post']--;
             $stillChanging = true;
 
             addLog($logs, $candidate['reg_no'], "Tentatively allocated to $cadre.");
         }
+
     }
 
     /**
@@ -353,6 +241,7 @@ while ($stillChanging) {
             $foundMultiple = true;
 
             $candidate = null;
+
             foreach ($candidates as $c) {
                 if ($c['reg_no'] == $reg) {
                     $candidate = $c;
@@ -361,50 +250,112 @@ while ($stillChanging) {
             }
 
             $choiceArray = explode(" ", $candidate['choice_list']);
+            $choiceArrayLenght = intval( count($choiceArray) - 1 );
 
             // choose highest preference
-            $bestCadre = null;
-            foreach ($choiceArray as $p) {
-                if (in_array($p, $foundIn)) {
-                    $bestCadre = $p;
+            $higherCadres = $choiceArray;
+            $currentCadre = null;
+            $foundFirstChoice = false;
+
+            foreach ($choiceArray as $p) 
+            {
+                if(array_search($p, $foundIn) == 0)
+                {
+                    $currentCadre = $p;
+                    $foundFirstChoice = true;
+                    break;
+                }
+                else if( array_search($p, $foundIn) == intval( count($foundIn) - 1 ) )
+                {
+                    $currentCadre = array_pop($choiceArray);
+                    $higherCadres = $choiceArray;
+                    $foundFirstChoice = false;
+                    break;
+                }
+                else{
+                    $currentCadre = $p;
+                    $higherCadres = array_slice($choiceArray, 0, array_search($p, $foundIn)-2);
+                    $foundFirstChoice = false;
                     break;
                 }
             }
 
-            addLog($logs, $reg, "Multiple assignments found. Best cadre: $bestCadre.");
-
             // finalize if first preference
-            if ($bestCadre === $choiceArray[0]) {
-                $finalAllocated[$reg] = $bestCadre;
-                addLog($logs, $reg, "Finalized because best cadre is 1st choice.");
-            }
+            if ( $foundFirstChoice )
+            {
+                $finalAllocated[$reg] = $currentCadre;
 
-            // remove from all but bestCadre
-            foreach ($allocation as $cad2 => &$allocList) {
-                foreach ($allocList as $i => $item) {
-                    if ($item['reg_no'] == $reg && $cad2 !== $bestCadre) {
-                        unset($allocList[$i]);
-                        $post_available[$cad2]['total']++; // return post
+                $post_available[$abbr_to_code[$currentCadre]]['total_post']--; // decrease post
 
-                        addLog($logs, $reg, "Removed from $cad2 (kept $bestCadre).");
+                // remove from all but bestCadre
+                foreach ($allocation as $cad2 => &$allocList) {
+                    foreach ($allocList as $i => $item) {
+                        if ($item['reg_no'] == $reg && $cad2 !== $currentCadre) {
+                            unset($allocList[$i]);
+                            $post_available[$abbr_to_code[$cad2]]['total_post']++; // return post
+                        }
                     }
                 }
             }
+            else if( $currentCadre === array_pop( $higherCadres ) )
+            {
+                $temporaryAllocated[$reg] = $currentCadre;
+
+                // keep all left side choices and remove from this cadre's queue.
+                foreach ($allocation as $cad2 => &$allocList) {
+                    foreach ($allocList as $i => $item) {
+                        if ($item['reg_no'] == $reg && $cad2 == $currentCadre) {
+                            unset($allocList[$i]);
+                            $post_available[$abbr_to_code[$cad2]]['total_post']--; // decrease post
+                        }
+                        else{
+                            $post_available[$abbr_to_code[$cad2]]['total_post']++;
+                        }
+                    }
+                }
+            }
+            else{
+
+                $temporaryAllocated[$reg] = $currentCadre;
+
+                // keep all left side choices and remove from this cadre's queue.
+                foreach ($allocation as $cad2 => &$allocList) {
+                    foreach ($allocList as $i => $item) {
+                        if ($item['reg_no'] == $reg && $cad2 == $currentCadre) {
+                            unset($allocList[$i]);
+                            $post_available[$abbr_to_code[$cad2]]['total_post']--; // decrease post
+                        }
+                        else if( $item['reg_no'] == $reg && !in_array($cad2, $higherCadres)){
+                            unset($allocList[$i]);
+                            $post_available[$abbr_to_code[$cad2]]['total_post']++;
+                        }
+                    }
+                }
+            }
+            
         }
     }
 
     if (!$foundMultiple) $stillChanging = false;
+
 }
 
-/**
- * Build UNALLOCATED list
- */
+foreach($temporaryAllocated as $tempReg => $tempCadre){
+    $newfromTemp = [];
+    $offset = array_search($tempReg, array_column($candidates, 'reg_no')) ?? null;
+    array_push( $allocation[$tempCadre], $candidates[$offset]);
+}
+
+echo count($allocation);
+
 $allocatedRegs = [];
+
 foreach ($allocation as $cadre => $arr) {
     foreach ($arr as $entry) {
         $allocatedRegs[$entry['reg_no']] = true;
     }
 }
+
 
 $unallocated = [];
 
@@ -414,25 +365,12 @@ foreach ($candidates as $c) {
             'reg_no' => $c['reg_no'],
             'user_id' => $c['user_id'],
             'raw_choice_list' => $c['choice_list'],
+            'general_merit_position' => $c['general_merit_position'],
+            'global_tech_merit' => $c['global_tech_merit'] ?? null,
             'technical_merit_positions' => formatTechnicalMerit($c),
-            'message' => "No cadre allocated after all rounds."
+            'cadre_category' => $c['cadre_category'] ?? null,
         ];
-        addLog($logs, $c['reg_no'], "Remained unallocated.");
     }
 }
-
-/*return [
-    'allocation' => $allocation,
-    'unallocated' => $unallocated,
-    'logs' => $logs
-];*/
-
-echo '<pre>';
-
-var_dump( $allocatedRegs );
-
-echo '</pre>';
-
-die();
 
 

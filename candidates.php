@@ -241,7 +241,6 @@ $candidates = [
         'user_id' => 'USR1C2V3B4',
         'cadre_category' => 'GG',
         'general_merit_position' => 20,
-        'global_tech_merit' => 27,
         'technical_merit_position' => null,
         'choice_list' => 'ADMN TRAD INFO',
         'quota' => null
