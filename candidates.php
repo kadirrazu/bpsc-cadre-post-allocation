@@ -37,8 +37,8 @@ $candidates = [
         'technical_merit_position' => ['ENPH' => 5],
         'choice_list' => 'ADMN ENPH FRGN',
         'quota' => [
-            'CFF' => false,
-            'EM' => true,
+            'CFF' => true,
+            'EM' => false,
             'PHC' => false
         ]
     ],
@@ -78,9 +78,9 @@ $candidates = [
         'technical_merit_position' => ['ROME' => 6, 'EDUC' => 10],
         'choice_list' => 'EDUC ROME ADMN CUST',
         'quota' => [
-            'CFF' => false,
-            'EM' => true,
-            'PHC' => true
+            'CFF' => true,
+            'EM' => false,
+            'PHC' => false
         ]
     ],
     [
@@ -91,14 +91,18 @@ $candidates = [
         'technical_merit_position' => null,
         'global_tech_merit' => 38,
         'choice_list' => 'INFO ADMN COOP TRAD',
-        'quota' => null
+        'quota' => [
+            'CFF' => true,
+            'EM' => true,
+            'PHC' => true
+        ]
     ],
     [
         'reg_no' => '20250008',
         'user_id' => 'USR9Q8W7E6',
         'cadre_category' => 'TT',
         'general_merit_position' => null,
-        'global_tech_merit' => 32,
+        'global_tech_merit' => 2,
         'technical_merit_position' => ['ENPH' => 2],
         'choice_list' => 'ENPH EDUC HLTH',
         'quota' => [
@@ -128,7 +132,11 @@ $candidates = [
         'general_merit_position' => 1,
         'technical_merit_position' => null,
         'choice_list' => 'FRGN ADMN TAXN',
-        'quota' => null
+        'quota' => [
+            'CFF' => false,
+            'EM' => true,
+            'PHC' => true
+        ]
     ],
     [
         'reg_no' => '20250011',
@@ -179,15 +187,19 @@ $candidates = [
         'global_tech_merit' => 125,
         'technical_merit_position' => ['EDUC' => 12],
         'choice_list' => 'EDUC HLTH ENPH',
-        'quota' => null
+        'quota' => [
+            'CFF' => false,
+            'EM' => true,
+            'PHC' => true
+        ]
     ],
     [
         'reg_no' => '20250015',
         'user_id' => 'USR4W3E2R1',
         'cadre_category' => 'GT',
         'general_merit_position' => 22,
-        'global_tech_merit' => 3,
-        'technical_merit_position' => ['ENPH' => 1],
+        'global_tech_merit' => 7,
+        'technical_merit_position' => ['ENPH' => 7],
         'choice_list' => 'ENPH ADMN COOP',
         'quota' => [
             'CFF' => false,
@@ -243,7 +255,11 @@ $candidates = [
         'general_merit_position' => 20,
         'technical_merit_position' => null,
         'choice_list' => 'ADMN TRAD INFO',
-        'quota' => null
+        'quota' => [
+            'CFF' => false,
+            'EM' => true,
+            'PHC' => true
+        ]
     ],
     [
         'reg_no' => '20250020',

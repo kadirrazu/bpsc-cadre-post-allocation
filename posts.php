@@ -5,7 +5,7 @@ $post_available = [
     102 => ['cadre' => 'POLC', 'total_post' => 3,  'MQ' => 2,  'CFF' => 0, 'EM' => 1, 'PHC' => 0],
     103 => ['cadre' => 'FRGN', 'total_post' => 2, 'MQ' => 2, 'CFF' => 0, 'EM' => 0, 'PHC' => 0],
     105 => ['cadre' => 'TAXN', 'total_post' => 2,  'MQ' => 2,  'CFF' => 0, 'EM' => 0, 'PHC' => 0],
-    106 => ['cadre' => 'CUST', 'total_post' => 2, 'MQ' => 2, 'CFF' => 1, 'EM' => 0, 'PHC' => 0],
+    106 => ['cadre' => 'CUST', 'total_post' => 2, 'MQ' => 1, 'CFF' => 1, 'EM' => 0, 'PHC' => 0],
     107 => ['cadre' => 'POST', 'total_post' => 1,  'MQ' => 1,  'CFF' => 0, 'EM' => 0, 'PHC' => 0],
     108 => ['cadre' => 'RAIL', 'total_post' => 5,  'MQ' => 4,  'CFF' => 1, 'EM' => 0, 'PHC' => 0],
     109 => ['cadre' => 'COOP', 'total_post' => 2, 'MQ' => 2, 'CFF' => 1, 'EM' => 0, 'PHC' => 0],

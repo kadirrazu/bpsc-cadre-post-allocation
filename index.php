@@ -31,11 +31,20 @@ include "data-processing.php";
         <div class="col-12 mb-4 mt-2">
 
             <h4 class="text-center text-info">Cadre Wise Assignments</h4>
-            <p class="text-primary text-center">Count: <?php echo count( $allocation ); ?></p>
 
-            <?php $j = 1; foreach( $allocation as $cadreAbbr => $allocated ): ?>
+            <?php 
+                $j = 1; 
+                $totalAllocationCount = 0; 
+                foreach( $allocation as $cadreAbbr => $allocated ): 
+            ?>
 
-            <h5><?php echo $cadreAbbr; $j++; ?></h5>
+            <h5>
+                <?php 
+                    echo $cadreAbbr . ' - ' . count($allocated); 
+                    $j++;
+                    $totalAllocationCount += count($allocated);
+                ?>
+            </h5>
 
             <table id="tblGeneral" class="table table-striped table-bordered">
                 <thead class="table-info">
@@ -62,16 +71,16 @@ include "data-processing.php";
                             <?= htmlspecialchars($candidate['reg_no']) ?>
                         </td>
                         <td class="text-center">
-                            <?= htmlspecialchars($candidate['cadre_category']) ?>
+                            <?= htmlspecialchars($candidate['candidate']['candidate']['cadre_category']) ?>
                         </td>
                         <td class="text-center">
-                            -
+                            <?php echo $candidate['candidate']['quota']; ?>
                         </td>
                         <td class="text-center">
                             <?php 
-                                if( isset($candidate['quota']) )
+                                if( isset($candidate['candidate']['candidate']['quota']) )
                                 {
-                                    foreach( $candidate['quota'] as $key => $value ){
+                                    foreach( $candidate['candidate']['candidate']['quota'] as $key => $value ){
                                         if($key == 'CFF' && $value == 1){
                                             echo '-' . $key;
                                         }
@@ -86,21 +95,30 @@ include "data-processing.php";
                             ?>
                         </td>
                         <td class="text-center">
-                            <?php echo $candidate['general_merit_position']; ?>
+                            <?php echo $candidate['candidate']['candidate']['general_merit_position']; ?>
                         </td>
                         </td>
                         <td class="text-center">
-                            <?php echo $candidate['global_tech_merit'] ?? ''; ?>
+                            <?php echo $candidate['candidate']['candidate']['global_tech_merit'] ?? ''; ?>
+                            <br>
+                            <?php 
+                                if(isset($candidate['candidate']['candidate']['technical_merit_position']))
+                                {
+                                    foreach( $candidate['candidate']['candidate']['technical_merit_position'] as $key => $value ){
+                                        print $key .'-'. $value . '<br>';
+                                    }
+                                }
+                            ?>
                         </td>
                         <td>
                             <?php 
-                                if( isset( $candidate['raw_choice_list'] ) )
+                                if( isset( $candidate['candidate']['candidate']['raw_choice_list'] ) )
                                 {
-                                    echo $candidate['raw_choice_list'];
+                                    echo $candidate['candidate']['candidate']['raw_choice_list'];
                                 }
                                 else
                                 {
-                                    echo $candidate['choice_list'];
+                                    echo $candidate['candidate']['candidate']['choice_list'];
                                 }
                             ?>
                         </td>
@@ -112,7 +130,12 @@ include "data-processing.php";
 
             </table>
 
-            <?php endforeach; ?>
+            <?php 
+        
+                endforeach; 
+                
+                echo '<span class="fw-bold text-primary">Total Allocation Count: ' . $totalAllocationCount . '</span>';
+            ?>
 
         </div>
 
@@ -154,10 +177,11 @@ include "data-processing.php";
                     </td>
                     <td class="text-center">
                         <?php echo $unCand['global_tech_merit'] ?? ''; ?>
+                        <br>
                         <?php 
                             if(isset($unCand['technical_merit_position']))
                             {
-                                foreach( $runCand['technical_merit_position'] as $key => $value ){
+                                foreach( $unCand['technical_merit_position'] as $key => $value ){
                                     print $key .'-'. $value . '<br>';
                                 }
                             }
