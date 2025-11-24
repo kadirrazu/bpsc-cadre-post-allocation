@@ -15,14 +15,16 @@
                     <div class="collapse navbar-collapse" id="navbarsExampleDefault">
                         <ul class="navbar-nav mr-auto">
                             <li class="nav-item active">
-                            <a class="nav-link" href="{{ url('/') }}">Post Details</a>
+                                <a class="nav-link" href="{{ url('/') }}">Post Details</a>
                             </li>
                             <li class="nav-item">
-                            <a class="nav-link" href="{{ url('/candidates') }}">Candidates</a>
+                                <a class="nav-link" href="{{ url('/candidates') }}">Candidates</a>
                             </li>
                             <li class="nav-item">
-                            <a class="nav-link" href="{{ url('/allocations') }}">Allocations</a>
+                                <a class="nav-link" href="{{ url('/allocations') }}">Allocation Result</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url('/allocation/run') }}">Run Allocation</a>
                             </li>
                         </ul>
                     </div>

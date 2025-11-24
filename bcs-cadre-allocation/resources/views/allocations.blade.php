@@ -21,11 +21,15 @@
                   <th class="text-center">Technical Passed</th>
                   <th>Choice List</th>
                   <th class="text-center">Quota</th>
+                  <th class="text-center">Selected Cadre</th>
+                  <th class="text-center">Type</th>
+                  <th class="text-center">Status</th>
+                  <th class="text-center">Higher</th>
               </tr>
             </thead>
             <tbody>
 
-              @foreach( $candidates as $candidate )
+              @foreach( $candidates->sortBy('assigned_cadre') as $candidate )
               
               <tr>
                   <td class="text-center">{{ $loop->index + 1 }}</td>
@@ -47,6 +51,18 @@
                         <span class="text-secondary">{{ $key }}</span><br>
                       @endif
                     @endforeach
+                  </td>
+                  <td class="text-center">
+                    {{ \App\Models\Cadre::where('cadre_code', $candidate->assigned_cadre)->first()->cadre_abbr }}
+                  </td>
+                  <td class="text-center">
+                    {{ $candidate->assigned_status }}
+                  </td>
+                  <td class="text-center">
+                    {{ $candidate->allocation_status }}
+                  </td>
+                  <td class="text-center">
+                    {{ $candidate->higher_choices }}
                   </td>
               </tr>
 
