@@ -13,13 +13,17 @@ return new class extends Migration
     {
         Schema::create('candidates', function (Blueprint $table) {
             $table->id();
-            $table->string('reg');
             $table->string('user_id')->nullable();
+            $table->string('reg');
+            $table->string('name')->nullable();
             $table->string('cadre_category');
+            $table->string('district')->nullable();
+            $table->string('gender')->nullable();
             $table->integer('general_merit_position')->nullable();
             $table->integer('technical_merit_position')->nullable();
             $table->string('technical_passed_cadres')->nullable();
             $table->string('choice_list');
+            $table->string('choice_list_tech')->nullable();
             $table->boolean('has_quota')->default(0);
             $table->string('quota_info')->nullable();
             $table->string('higher_choices')->nullable();
