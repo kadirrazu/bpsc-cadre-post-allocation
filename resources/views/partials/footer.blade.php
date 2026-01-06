@@ -8,7 +8,14 @@
     $(document).ready(function() {
         $('.datatable').DataTable({
             "pageLength": 20,
+            "columnDefs": [
+                { "searchable": false, "targets": [0, 2, 3, 4, 5, 6, 7, 9, 10, 11] } 
+            ],
         });
+
+        $('.preloader2').addClass('d-none');
+        $('.content-wrapper').removeClass('d-none');
+
     });
 
 </script>

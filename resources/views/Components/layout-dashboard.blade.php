@@ -11,8 +11,22 @@
   </head>
 
   <body>
+
+    <div class="container">
+      <div class="row">
+            <div class="col-md-12">
+                <div class="preloader2">
+                    <div class="box1"></div>
+                    <div class="box2"></div>
+                    <div class="box3"></div>
+                    <div class="box4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Content wrapper -->
-    <div class="content-wrapper">
+    <div class="content-wrapper d-none">
       <!-- Content -->
 
         @include('partials.navigation')

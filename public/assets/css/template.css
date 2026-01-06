@@ -4,3 +4,34 @@ body {
 .starter-template {
   padding: 3rem 1.5rem;
 }
+
+/********************  Preloader Demo-2 *******************/
+.preloader2{height:105px;width:105px;margin:0 auto;animation:loader-container 10s linear infinite}
+.preloader2>div{width:44px;height:44px;box-shadow:0 0 8px -2px rgba(0,0,0,.3);position:absolute;animation-duration:1.5s;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.preloader2 .box1{background:linear-gradient(-45deg,red,#d60c0c);transform-origin:bottom center;top:4px;left:4px;animation-name:box1}
+.preloader2 .box2{background:linear-gradient(-45deg,#15c109,#29870d);transform-origin:center left;top:4px;right:4px;animation-name:box2}
+.preloader2 .box3{background:linear-gradient(-45deg,#c300ff,#a808a8);transform-origin:top center;bottom:4px;right:4px;animation-name:box3}
+.preloader2 .box4{background:linear-gradient(-45deg,#fc8e28,#ea7e0b);transform-origin:center right;bottom:4px;left:4px;animation-name:box4}
+@keyframes loader-container{
+    0%,23%{transform:rotate(0)}
+    25%,48%{transform:rotate(90deg)}
+    50%,73%{transform:rotate(180deg)}
+    75%,98%{transform:rotate(270deg)}
+    100%{transform:rotate(360deg)}
+}
+@keyframes box1{
+    0%,100%,99%{transform:perspective(200px) rotateX(90deg)}
+    11%,88%{transform:perspective(200px) rotateX(0)}
+}
+@keyframes box2{
+    0%,100%,11%,88%{transform:perspective(200px) rotateY(90deg)}
+    22%,77%{transform:perspective(200px) rotateY(0)}
+}
+@keyframes box3{
+    0%,100%,22%,77%{transform:perspective(200px) rotateX(-90deg)}
+    33%,66%{transform:perspective(200px) rotateX(0)}
+}
+@keyframes box4{
+    0%,100%,33%,66%{transform:perspective(200px) rotateY(-90deg)}
+    44%,55%{transform:perspective(200px) rotateY(0)}
+}
