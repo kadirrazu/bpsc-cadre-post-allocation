@@ -6,8 +6,13 @@
 <script>
 
     $(document).ready(function() {
+        
         $('.datatable').DataTable({
-            "pageLength": 20,
+            "pageLength": 40,
+        });
+        
+        $('.datatable-allocation').DataTable({
+            "pageLength": 40,
             "columnDefs": [
                 { "searchable": false, "targets": [0, 2, 3, 4, 5, 6, 7, 9, 10, 11] } 
             ],

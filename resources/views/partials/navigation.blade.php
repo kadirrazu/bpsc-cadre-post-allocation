@@ -1,8 +1,8 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top m-auto">
-                <a class="navbar-brand" href="#">CADRE ALLOCATION SYSTEM</a>
+            <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top m-auto ps-3 pe-3">
+                <a class="navbar-brand" href="#">BPSC - CADRE POST ALLOCATION SYSTEM</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
                 </button>

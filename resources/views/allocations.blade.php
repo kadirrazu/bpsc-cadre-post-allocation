@@ -6,11 +6,11 @@
 
       <div class="starter-template">
 
-        <h3>Allocation in defferent Cadres:</h3>
+        <h3><span class="text-info">Allocation Result</span> in defferent Cadres:</h3>
 
         @if( $candidates->count() > 0 )
       
-        <table class="table table-striped table-bordered datatable">
+        <table class="table table-striped table-bordered datatable-allocation">
             <thead>
               <tr>
                   <th class="text-center">Sr.</th>
