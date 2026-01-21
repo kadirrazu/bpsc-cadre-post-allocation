@@ -26,6 +26,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url('/allocation/run') }}">Run Allocation</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url('/reports') }}">Reports</a>
+                            </li>
                         </ul>
                     </div>
                 </form>
