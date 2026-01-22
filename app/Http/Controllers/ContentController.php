@@ -10,6 +10,8 @@ use App\Models\Post;
 use App\Models\Cadre;
 use App\Models\Candidate;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class ContentController extends Controller
 {
     public function index()
@@ -125,7 +127,7 @@ class ContentController extends Controller
 
         $content = $txt;
 
-        $fileName = 'allocation-result-' . date('d-m-Y-H-i-s') . '.txt';
+        $fileName = 'allocation-result-all-status' . date('d-m-Y-H-i-s') . '.txt';
 
         return response()->streamDownload(function () use ($content) {
             echo $content;
@@ -200,13 +202,35 @@ class ContentController extends Controller
 
         $content = $txt;
 
-        $fileName = 'allocation-result-' . date('d-m-Y-H-i-s') . '.txt';
+        $fileName = 'allocation-result-only-quota-status-' . date('d-m-Y-H-i-s') . '.txt';
 
         return response()->streamDownload(function () use ($content) {
             echo $content;
         }, $fileName, [
             'Content-Type' => 'text/plain',
         ]);
+
+    }
+
+
+    public function download_allocation_pdf() {
+
+        $allocations = DB::table('candidates')
+                    ->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
+                    ->whereNotNull('candidates.assigned_cadre')
+                    ->where('candidates.assigned_cadre', '=', 110)
+                    ->orderBy('candidates.assigned_cadre', 'ASC')
+                    ->orderBy('candidates.general_merit_position', 'ASC')
+                    ->orderBy('candidates.technical_merit_position', 'ASC')
+                    ->get();
+    
+        $pdf = Pdf::loadView('reports.allocation-result-all-status', ['allocations' => $allocations]);
+
+        //$pdf->setOptions(['isPhpEnabled' => true]);
+    
+        return $pdf->setPaper('a4', 'landscape')->stream( 'allocation-result-all-status-' . date('d-m-Y-H-i-s'). '.pdf' );
+
+        //return view('reports.allocation-result-all-status', ['allocations' => $allocations]);
 
     }
 

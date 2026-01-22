@@ -40,3 +40,4 @@ Route::get('/allocation/run', [AllocationController::class, 'runAllocation']);
 Route::get('/reports', [ContentController::class, 'reports']);
 Route::get('/report-text-file', [ContentController::class, 'report_download_txt']);
 Route::get('/report-text-file-quota', [ContentController::class, 'report_download_txt_quota']);
+Route::get('/report-pdf-file-cadre-wise', [ContentController::class, 'download_allocation_pdf']);
