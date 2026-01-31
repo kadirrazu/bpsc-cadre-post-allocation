@@ -36,8 +36,10 @@ Route::get('/candidates', [ContentController::class, 'candidates']);
 Route::get('/allocations', [ContentController::class, 'allocations']);
 Route::get('/print-allocation', [ContentController::class, 'allocations_print']);
 Route::get('/allocation/run', [AllocationController::class, 'runAllocation']);
+Route::get('/allocation/run-nm-fill', [AllocationController::class, 'runNationalMeritAllocation']);
 
 Route::get('/reports', [ContentController::class, 'reports']);
 Route::get('/report-text-file', [ContentController::class, 'report_download_txt']);
 Route::get('/report-text-file-quota', [ContentController::class, 'report_download_txt_quota']);
 Route::get('/report-pdf-file-cadre-wise', [ContentController::class, 'download_allocation_pdf']);
+Route::get('/print_post_table', [ContentController::class, 'printPostTable']);

@@ -1,4 +1,4 @@
-<x-layout-dashboard>
+<x-layout-dashboard-print>
 
 <!-- Contents Starts Here -->
 
@@ -119,14 +119,10 @@
             
         </table>
 
-        <hr>
-
-        <a href="{{ url('/print_post_table') }}" class="btn btn-secondary" target="_blank">Print this Table</a>
-
       </div>
 
     </main><!-- /.container -->
 
 <!-- Contents Ends Here -->
 
-</x-layout-dashboard>
+</x-layout-dashboard-print>

@@ -655,4 +655,67 @@ class AllocationController extends Controller
         }
         return false;
     }
+
+    /**National Merit Allocation Handling - 
+     * Warning:
+     * This Portion of code Shall Run After General Merit & Quota Allocation Phase 
+     **/
+    public function runNationalMeritAllocation()
+    {
+
+        $nonAllocated = Candidate::whereNull('assigned_cadre')->orderBy('general_merit_position', 'asc')->orderBy('technical_merit_position', 'asc')->get();
+
+        foreach($nonAllocated as $candidate)
+        {
+
+           $choiceList =  $candidate->choice_list;
+
+           $parsedChoiceList = $this->parse_choices_list( $choiceList );
+
+           $allocationPossible = false;
+
+           $passedCadreCategory = $candidate->cadre_category;
+
+           foreach( $parsedChoiceList as $cadreAbbr )
+           {
+
+                $cadreRow = Cadre::where('cadre_abbr', $cadreAbbr)->first();
+
+                if( $cadreRow == null ){
+                    continue;
+                }
+
+                $cadre_post_details = Post::where('cadre_code', $cadreRow->cadre_code)->first();
+
+                if( $cadre_post_details == null ){
+                    continue;
+                }
+
+                if( $cadre_post_details->mq_post_left > 0 ){
+                    continue;
+                }
+                else{
+                    $currentCadreCodeType = Cadre::where('cadre_abbr', $cadreAbbr)->first()->cadre_type;
+
+                    if( $currentCadreCodeType == 'GG' && ($passedCadreCategory == 'TT' || $passedCadreCategory == 'T') ){
+                        continue;
+                    }
+                    else if( $currentCadreCodeType == 'TT' && ($passedCadreCategory == 'GG' || $passedCadreCategory == 'G') ){
+                        continue;
+                    }
+                    else{
+                        if( $cadre_post_details->cff_post_left > 0 || $cadre_post_details->em_post_left > 0 || $cadre_post_details->phc_post_left > 0){
+                            echo 'Allocation Maybe Possible for - ' . $candidate->reg . ' in cadre ' . $cadreAbbr;
+                            echo '<br>';
+                        }
+                        
+                    }
+                }
+
+           }
+
+        }
+
+    } //End of function 'runNationalMeritAllocation'
+
 }

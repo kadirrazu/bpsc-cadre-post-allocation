@@ -234,5 +234,18 @@ class ContentController extends Controller
 
     }
 
+    public function printPostTable()
+    {
+
+        $posts = Post::orderBy('cadre_code', 'ASC')->get();
+        $cadres = Cadre::orderBy('cadre_code', 'ASC')->get();
+
+        return view('print-post-table', [
+            'posts' => $posts,
+            'cadres' => $cadres,
+        ]);
+
+    }
+
 
 }
