@@ -235,6 +235,142 @@ class ContentController extends Controller
     }
 
 
+    public function report_download_txt_nm()
+    {
+
+        $cadres = DB::table('candidates')->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')->orderBy('candidates.assigned_cadre', 'ASC')->get();
+
+        $non_cadres = Candidate::whereNull('assigned_cadre')->orderBy('reg', 'ASC')->get();
+
+        $cadreGroups = $cadres->groupBy('assigned_cadre');
+
+        $txt = '';
+
+        $txt .= '-------- BCS CADRE POST ALLOCATION SYSTEM --------' . "\r\n";
+        $txt .= 'Report Generation Timestamp: ' . date('d-m-Y H:i:s') . "\r\n\r\n";
+
+        $txt .= 'NM Allocation in Differet Cadres: ' . "\r\n\r\n";
+
+        $serial = 1;
+
+        $totalQuotaCandidates = 0;
+
+        foreach( $cadreGroups as $cadreCode => $candidates ){
+
+            $txt .= $serial .': '. $cadreCode . ' - ' . get_cadre_details_by_code($cadreCode) . "\r\n\r\n";
+
+            $cadreType = Cadre::where('cadre_code', $cadreCode)->first()->cadre_type;
+
+            if( $cadreType == null ){
+                $cadreType = 'NULL';
+            }
+
+            if( $cadreType == 'GG' ){
+                $candidates = $candidates->sortBy('general_merit_position', SORT_NUMERIC);
+            }
+            else{
+                $candidates = $candidates->sortBy('technical_merit_position', SORT_NUMERIC);
+            }
+
+            $count = 0;
+            $outerLoop = 0;
+
+            foreach( $candidates as $cand ){
+
+                if( $cand->assigned_status == 'NM' )
+                {
+
+                    $txt .= $cand->reg . ' ('. $cand->assigned_status .')';
+
+                    if($count !== $candidates->count() - 1){
+                        $txt .= '  ';
+                    }
+
+                    $count++;
+
+                }
+
+                $outerLoop++;
+
+                if($outerLoop === $candidates->count()){
+                    $txt .= '  ' . 'Total = ' . $count;
+                }
+
+            }
+
+            $txt .= "\r\n\r\n\r\n\r\n";
+
+            $totalQuotaCandidates += $count;
+
+            $serial++;
+
+        }
+
+        $txt .= 'Total NM Candidates in different Cadres: ' . $totalQuotaCandidates . "\r\n\r\n";
+
+        $content = $txt;
+
+        $fileName = 'allocation-result-only-nm-status-' . date('d-m-Y-H-i-s') . '.txt';
+
+        return response()->streamDownload(function () use ($content) {
+            echo $content;
+        }, $fileName, [
+            'Content-Type' => 'text/plain',
+        ]);
+
+    }
+
+    public function report_download_txt_non_cadre()
+    {
+
+        $non_cadres = Candidate::whereNull('assigned_cadre')->orderBy('reg', 'ASC')->get();
+
+        $txt = '';
+
+        $txt .= '-------- BCS CADRE POST ALLOCATION SYSTEM --------' . "\r\n";
+        $txt .= 'Report Generation Timestamp: ' . date('d-m-Y H:i:s') . "\r\n\r\n";
+
+        $txt .= 'Un-allocated Candidate List [for Non Cadre]: ' . "\r\n\r\n";
+
+        $serial = 1;
+
+        $totalQuotaCandidates = 0;
+
+        $count = 0;
+
+        foreach( $non_cadres as $cand ){
+
+            $txt .= $cand->reg;
+
+            if($count !== $non_cadres->count() - 1){
+                $txt .= '  ';
+            }
+
+            $count++;
+
+            if($count === $non_cadres->count()){
+                $txt .= '  ' . 'Total = ' . $count;
+            }
+
+        }
+
+        $txt .= "\r\n\r\n\r\n\r\n";
+
+        $txt .= 'Total Un-allocated Candidates [for Non Cadre]: ' . $count . "\r\n\r\n";
+
+        $content = $txt;
+
+        $fileName = 'allocation-result-only-non-cadre-status-' . date('d-m-Y-H-i-s') . '.txt';
+
+        return response()->streamDownload(function () use ($content) {
+            echo $content;
+        }, $fileName, [
+            'Content-Type' => 'text/plain',
+        ]);
+
+    }
+
+
     public function download_allocation_pdf() {
 
         $allocations = DB::table('candidates')
