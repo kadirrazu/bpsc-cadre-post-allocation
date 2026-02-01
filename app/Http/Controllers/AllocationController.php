@@ -718,4 +718,146 @@ class AllocationController extends Controller
 
     } //End of function 'runNationalMeritAllocation'
 
+    function fillRemainingQuotaVacancies(): void
+    {
+        
+        echo 'Status: NM Posting Started...<br>';
+    
+        DB::transaction(function () {
+
+            /*
+            |--------------------------------------------------------------------------
+            | 1. Load remaining quota posts with cadre type
+            |--------------------------------------------------------------------------
+            */
+            $posts = DB::table('posts')
+                ->join('cadres', 'cadres.cadre_code', '=', 'posts.cadre_code')
+                ->where(function ($q) {
+                    $q->where('posts.cff_post_left', '>', 0)
+                    ->orWhere('posts.em_post_left', '>', 0)
+                    ->orWhere('posts.phc_post_left', '>', 0);
+                })
+                ->select(
+                    'posts.*',
+                    'cadres.cadre_type',
+                    'cadres.cadre_abbr'
+                )
+                ->get();
+
+            if ($posts->isEmpty()) return;
+
+            /*
+            |--------------------------------------------------------------------------
+            | 2. Load unassigned candidates
+            |--------------------------------------------------------------------------
+            */
+            $candidates = DB::table('candidates')
+                ->whereNull('assigned_cadre')
+                ->get();
+
+            if ($candidates->isEmpty()) return;
+
+            /*
+            |--------------------------------------------------------------------------
+            | 3. Process CADRE by CADRE (THIS IS THE FIX)
+            |--------------------------------------------------------------------------
+            */
+            foreach ($posts as $post) {
+
+                foreach (['CFF','EM','PHC'] as $quota) {
+
+                    $quotaCol = strtolower($quota) . '_post_left';
+
+                    while ($post->$quotaCol > 0) {
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | 4. Build eligible candidate pool for THIS cadre
+                        |--------------------------------------------------------------------------
+                        */
+                        $eligible = $candidates->filter(function ($c) use ($post, $quota) {
+
+                            // quota eligibility
+                            //if (empty($c->{strtolower($quota)})) return false;
+
+                            // cadre choice must exist
+                            $choices = preg_split('/\s+/', trim($c->choice_list));
+                            if (!in_array($post->cadre_abbr, $choices)) return false;
+
+                            // GENERAL cadre
+                            if ($post->cadre_type === 'GG') {
+                                return !empty($c->general_merit_position);
+                            }
+
+                            // GENERAL cadre
+                            if ($post->cadre_type !== 'GG') {
+                                return !empty($c->technical_merit_position);
+                            }
+
+                            // TECHNICAL cadre
+                            $passed = json_decode($c->technical_passed_cadres ?? '{}', true);
+                            return isset($passed[$post->cadre_abbr]);
+                        });
+
+                        if ($eligible->isEmpty()) break;
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | 5. Sort using CORRECT merit source
+                        |--------------------------------------------------------------------------
+                        */
+                        $eligible = $eligible->sort(function ($a, $b) use ($post) {
+
+                            // GENERAL
+                            if ($post->cadre_type === 'GG') {
+                                return ($a->general_merit_position ?? PHP_INT_MAX)
+                                    <=> ($b->general_merit_position ?? PHP_INT_MAX);
+                            }
+
+                            // GENERAL
+                            /*if ($post->cadre_type !== 'GG') {
+                                return ($a->technical_merit_position ?? PHP_INT_MAX)
+                                    <=> ($b->technical_merit_position ?? PHP_INT_MAX);
+                            }*/
+
+                            // TECHNICAL (cadre specific merit)
+                            $aTech = json_decode($a->technical_passed_cadres, true)[$post->cadre_abbr] ?? PHP_INT_MAX;
+                            $bTech = json_decode($b->technical_passed_cadres, true)[$post->cadre_abbr] ?? PHP_INT_MAX;
+
+                            return $aTech <=> $bTech;
+                        });
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | 6. Allocate BEST candidate
+                        |--------------------------------------------------------------------------
+                        */
+                        $winner = $eligible->first();
+
+                        DB::table('candidates')
+                            ->where('id', $winner->id)
+                            ->update([
+                                'assigned_cadre' => $post->cadre_code,
+                                'assigned_status' => 'NM',
+                                'allocation_status'  => 'final',
+                            ]);
+
+                        DB::table('posts')
+                            ->where('id', $post->id)
+                            ->decrement($quotaCol);
+
+                        // update local state
+                        $post->$quotaCol--;
+
+                        // remove allocated candidate from pool
+                        $candidates = $candidates->reject(fn($c) => $c->id === $winner->id);
+                    }
+                }
+            }
+        });
+
+        echo 'Status: NM Posting Done!<br>';
+
+    }
+
 }

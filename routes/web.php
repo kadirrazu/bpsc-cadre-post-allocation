@@ -37,7 +37,7 @@ Route::get('/candidates', [ContentController::class, 'candidates']);
 Route::get('/allocations', [ContentController::class, 'allocations']);
 Route::get('/print-allocation', [ContentController::class, 'allocations_print']);
 Route::get('/allocation/run', [AllocationController::class, 'runAllocation']);
-Route::get('/allocation/run-nm-fill', [AllocationController::class, 'runNationalMeritAllocation']);
+Route::get('/allocation/run-nm-fill', [AllocationController::class, 'fillRemainingQuotaVacancies']);
 
 Route::get('/reports', [ContentController::class, 'reports']);
 Route::get('/report-text-file', [ContentController::class, 'report_download_txt']);
