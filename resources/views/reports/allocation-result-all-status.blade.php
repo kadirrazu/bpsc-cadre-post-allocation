@@ -48,6 +48,19 @@
 
                         $serial = 1;
 
+                        $cadreType = get_cadre_type( $cadreCode );
+
+                        if( $cadreType == null ){
+                            $cadreType = 'NULL';
+                        }
+
+                        if( $cadreType == 'GG' ){
+                            $candidates = $candidates->sortBy('general_merit_position', SORT_NUMERIC);
+                        }
+                        else{
+                            $candidates = $candidates->sortBy('technical_merit_position', SORT_NUMERIC);
+                        }
+
                     @endphp
 
                     <table class="table table-bordered">

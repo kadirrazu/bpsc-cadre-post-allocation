@@ -99,7 +99,18 @@ class ContentController extends Controller
 
             $txt .= $serial .': '. $cadreCode . ' - ' . get_cadre_details_by_code($cadreCode) . ' [Total = '.$candidates->count().']' . "\r\n\r\n";
 
-            $candidates = $candidates->sortBy('general_merit_position', SORT_NUMERIC);
+            $cadreType = Cadre::where('cadre_code', $cadreCode)->first()->cadre_type;
+
+            if( $cadreType == null ){
+                $cadreType = 'NULL';
+            }
+
+            if( $cadreType == 'GG' ){
+                $candidates = $candidates->sortBy('general_merit_position', SORT_NUMERIC);
+            }
+            else{
+                $candidates = $candidates->sortBy('technical_merit_position', SORT_NUMERIC);
+            }
 
             $count = 0;
 
@@ -127,7 +138,7 @@ class ContentController extends Controller
 
         $content = $txt;
 
-        $fileName = 'allocation-result-all-status' . date('d-m-Y-H-i-s') . '.txt';
+        $fileName = 'allocation-result-all-status-' . date('d-m-Y-H-i-s') . '.txt';
 
         return response()->streamDownload(function () use ($content) {
             echo $content;
@@ -162,7 +173,18 @@ class ContentController extends Controller
 
             $txt .= $serial .': '. $cadreCode . ' - ' . get_cadre_details_by_code($cadreCode) . "\r\n\r\n";
 
-            $candidates = $candidates->sortBy('general_merit_position', SORT_NUMERIC);
+            $cadreType = Cadre::where('cadre_code', $cadreCode)->first()->cadre_type;
+
+            if( $cadreType == null ){
+                $cadreType = 'NULL';
+            }
+
+            if( $cadreType == 'GG' ){
+                $candidates = $candidates->sortBy('general_merit_position', SORT_NUMERIC);
+            }
+            else{
+                $candidates = $candidates->sortBy('technical_merit_position', SORT_NUMERIC);
+            }
 
             $count = 0;
             $outerLoop = 0;
@@ -218,19 +240,18 @@ class ContentController extends Controller
         $allocations = DB::table('candidates')
                     ->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
                     ->whereNotNull('candidates.assigned_cadre')
-                    ->where('candidates.assigned_cadre', '=', 110)
                     ->orderBy('candidates.assigned_cadre', 'ASC')
                     ->orderBy('candidates.general_merit_position', 'ASC')
                     ->orderBy('candidates.technical_merit_position', 'ASC')
                     ->get();
     
-        $pdf = Pdf::loadView('reports.allocation-result-all-status', ['allocations' => $allocations]);
+        //$pdf = Pdf::loadView('reports.allocation-result-all-status', ['allocations' => $allocations]);
 
         //$pdf->setOptions(['isPhpEnabled' => true]);
     
-        return $pdf->setPaper('a4', 'landscape')->stream( 'allocation-result-all-status-' . date('d-m-Y-H-i-s'). '.pdf' );
+        //return $pdf->setPaper('a4', 'landscape')->stream( 'allocation-result-all-status-' . date('d-m-Y-H-i-s'). '.pdf' );
 
-        //return view('reports.allocation-result-all-status', ['allocations' => $allocations]);
+        return view('reports.allocation-result-all-status', ['allocations' => $allocations]);
 
     }
 

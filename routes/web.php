@@ -31,6 +31,7 @@ function get_cadre_details_by_code($cadre_code)
     return $cadre_abbr . ' - ' . $cadre_name;
 }
 
+
 Route::get('/', [ContentController::class, 'index']);
 Route::get('/candidates', [ContentController::class, 'candidates']);
 Route::get('/allocations', [ContentController::class, 'allocations']);
