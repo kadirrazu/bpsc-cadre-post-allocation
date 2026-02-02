@@ -149,6 +149,102 @@ class ContentController extends Controller
     }
 
 
+    public function report_download_txt_only_merit_position()
+    {
+
+        $cadres = DB::table('candidates')->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')->orderBy('candidates.assigned_cadre', 'ASC')->get();
+
+        $non_cadres = Candidate::whereNull('assigned_cadre')->orderBy('reg', 'ASC')->get();
+
+        $cadreGroups = $cadres->groupBy('assigned_cadre');
+
+        $txt = '';
+
+        $txt .= '-------- BCS CADRE POST ALLOCATION SYSTEM --------' . "\r\n";
+        $txt .= 'Report Generation Timestamp: ' . date('d-m-Y H:i:s') . "\r\n\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n";
+
+        $txt .= '| Total Allocated Cadre Count                     | ' . str_pad($cadreGroups->count(), 7, " ", STR_PAD_RIGHT) . " |\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n";
+
+        $txt .= '| Total Candidates Allocated in Cadre Posts       | ' . str_pad($cadres->count(), 7, " ", STR_PAD_RIGHT) . " |\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n";
+
+        $txt .= '| Total Non Allocated Candidates                  | ' . str_pad($non_cadres->count(), 7, " ", STR_PAD_RIGHT). " |\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n";
+
+        $txt .= '| Sum of Cadre + Non Allocated                    | ' . str_pad($cadres->count() + $non_cadres->count(), 7, " ", STR_PAD_RIGHT) . " |\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n\r\n";
+
+        $txt .= 'Cadre Wise Allocations: ' . "\r\n\r\n";
+
+        $serial = 1;
+
+        foreach( $cadreGroups as $cadreCode => $candidates ){
+
+            $txt .= $serial .': '. $cadreCode . ' - ' . get_cadre_details_by_code($cadreCode) . ' [Total = '.$candidates->count().']' . "\r\n\r\n";
+
+            $cadreType = Cadre::where('cadre_code', $cadreCode)->first()->cadre_type;
+
+            if( $cadreType == null ){
+                $cadreType = 'NULL';
+            }
+
+            if( $cadreType == 'GG' ){
+                $candidates = $candidates->sortBy('general_merit_position', SORT_NUMERIC);
+            }
+            else{
+                $candidates = $candidates->sortBy('technical_merit_position', SORT_NUMERIC);
+            }
+
+            $count = 0;
+
+            foreach( $candidates as $cand ){
+
+                
+                if( $cadreType == 'GG' ){
+                    $txt .= $cand->general_merit_position . ' ('. $cand->assigned_status .')';
+                }
+                else{
+                    $txt .= !empty($cand->technical_merit_position) ? $cand->technical_merit_position : $cand->general_merit_position . ' ('. $cand->assigned_status .')';
+                }
+
+                if($count !== $candidates->count() - 1){
+                    $txt .= '  ';
+                }
+
+                $count++;
+
+                if($count === $candidates->count()){
+                    $txt .= '  ' . 'Total = ' . $count;
+                }
+
+            }
+
+            $txt .= "\r\n\r\n\r\n\r\n";
+
+            $serial++;
+
+        }
+
+        $content = $txt;
+
+        $fileName = 'allocation-result-all-status-' . date('d-m-Y-H-i-s') . '.txt';
+
+        return response()->streamDownload(function () use ($content) {
+            echo $content;
+        }, $fileName, [
+            'Content-Type' => 'text/plain',
+        ]);
+
+    }
+
+
     public function report_download_txt_quota()
     {
 
@@ -191,7 +287,7 @@ class ContentController extends Controller
 
             foreach( $candidates as $cand ){
 
-                if( !($cand->assigned_status == 'MQ' || $cand->assigned_status == 'NM') )
+                if( !($cand->assigned_status == 'MQ') )
                 {
 
                     $txt .= $cand->reg . ' ('. $cand->assigned_status .')';
@@ -235,7 +331,7 @@ class ContentController extends Controller
     }
 
 
-    public function report_download_txt_nm()
+    public function report_download_txt_with_all_status()
     {
 
         $cadres = DB::table('candidates')->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')->orderBy('candidates.assigned_cadre', 'ASC')->get();
@@ -249,15 +345,31 @@ class ContentController extends Controller
         $txt .= '-------- BCS CADRE POST ALLOCATION SYSTEM --------' . "\r\n";
         $txt .= 'Report Generation Timestamp: ' . date('d-m-Y H:i:s') . "\r\n\r\n";
 
-        $txt .= 'NM Allocation in Differet Cadres: ' . "\r\n\r\n";
+        $txt .= ' -----------------------------------------------------------' . "\r\n";
+
+        $txt .= '| Total Allocated Cadre Count                     | ' . str_pad($cadreGroups->count(), 7, " ", STR_PAD_RIGHT) . " |\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n";
+
+        $txt .= '| Total Candidates Allocated in Cadre Posts       | ' . str_pad($cadres->count(), 7, " ", STR_PAD_RIGHT) . " |\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n";
+
+        $txt .= '| Total Non Allocated Candidates                  | ' . str_pad($non_cadres->count(), 7, " ", STR_PAD_RIGHT). " |\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n";
+
+        $txt .= '| Sum of Cadre + Non Allocated                    | ' . str_pad($cadres->count() + $non_cadres->count(), 7, " ", STR_PAD_RIGHT) . " |\r\n";
+
+        $txt .= ' -----------------------------------------------------------' . "\r\n\r\n";
+
+        $txt .= 'Cadre Wise Allocations (with ASSIGNED STATUS): ' . "\r\n\r\n";
 
         $serial = 1;
 
-        $totalQuotaCandidates = 0;
-
         foreach( $cadreGroups as $cadreCode => $candidates ){
 
-            $txt .= $serial .': '. $cadreCode . ' - ' . get_cadre_details_by_code($cadreCode) . "\r\n\r\n";
+            $txt .= $serial .': '. $cadreCode . ' - ' . get_cadre_details_by_code($cadreCode) . ' [Total = '.$candidates->count().']' . "\r\n\r\n";
 
             $cadreType = Cadre::where('cadre_code', $cadreCode)->first()->cadre_type;
 
@@ -273,26 +385,18 @@ class ContentController extends Controller
             }
 
             $count = 0;
-            $outerLoop = 0;
 
             foreach( $candidates as $cand ){
 
-                if( $cand->assigned_status == 'NM' )
-                {
+                $txt .= $cand->reg . ' (' . $cand->assigned_status . ')';
 
-                    $txt .= $cand->reg . ' ('. $cand->assigned_status .')';
-
-                    if($count !== $candidates->count() - 1){
-                        $txt .= '  ';
-                    }
-
-                    $count++;
-
+                if($count !== $candidates->count() - 1){
+                    $txt .= '  ';
                 }
 
-                $outerLoop++;
+                $count++;
 
-                if($outerLoop === $candidates->count()){
+                if($count === $candidates->count()){
                     $txt .= '  ' . 'Total = ' . $count;
                 }
 
@@ -300,23 +404,20 @@ class ContentController extends Controller
 
             $txt .= "\r\n\r\n\r\n\r\n";
 
-            $totalQuotaCandidates += $count;
-
             $serial++;
 
         }
 
-        $txt .= 'Total NM Candidates in different Cadres: ' . $totalQuotaCandidates . "\r\n\r\n";
-
         $content = $txt;
 
-        $fileName = 'allocation-result-only-nm-status-' . date('d-m-Y-H-i-s') . '.txt';
+        $fileName = 'allocation-result-all-status-' . date('d-m-Y-H-i-s') . '.txt';
 
         return response()->streamDownload(function () use ($content) {
             echo $content;
         }, $fileName, [
             'Content-Type' => 'text/plain',
         ]);
+
 
     }
 

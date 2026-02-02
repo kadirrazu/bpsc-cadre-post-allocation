@@ -18,10 +18,13 @@
             <a href="{{ url('/report-text-file-quota') }}" class="text-decoration-none">Download Text File - Cadre Wise - Only Quota (CFF, EM & PHC)</a>
           </li>
           <li class="list-group-item">
-            <a href="{{ url('/report-text-file-nm') }}" class="text-decoration-none">Download Text File - Cadre Wise - Only NM</a>
+            <a href="{{ url('/report-text-file-with-all-status') }}" class="text-decoration-none">Download Text File - Cadre Wise - All Status</a>
           </li>
           <li class="list-group-item">
             <a href="{{ url('/report-text-file-non-cadre') }}" class="text-decoration-none">Download Text File - Non Cadre</a>
+          </li>
+          <li class="list-group-item">
+            <a href="{{ url('/report-text-file-by-merit-position') }}" class="text-decoration-none">Download Text File - Cadre Wise - Only Merit Position</a>
           </li>
           <li class="list-group-item">
             <a href="{{ url('/report-pdf-file-cadre-wise') }}" class="text-decoration-none">Download Allocation PDF - Cadre Wise</a>

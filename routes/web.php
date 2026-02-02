@@ -42,7 +42,8 @@ Route::get('/allocation/run-nm-fill', [AllocationController::class, 'fillRemaini
 Route::get('/reports', [ContentController::class, 'reports']);
 Route::get('/report-text-file', [ContentController::class, 'report_download_txt']);
 Route::get('/report-text-file-quota', [ContentController::class, 'report_download_txt_quota']);
-Route::get('/report-text-file-nm', [ContentController::class, 'report_download_txt_nm']);
+Route::get('/report-text-file-with-all-status', [ContentController::class, 'report_download_txt_with_all_status']);
 Route::get('/report-text-file-non-cadre', [ContentController::class, 'report_download_txt_non_cadre']);
+Route::get('/report-text-file-by-merit-position', [ContentController::class, 'report_download_txt_only_merit_position']);
 Route::get('/report-pdf-file-cadre-wise', [ContentController::class, 'download_allocation_pdf']);
 Route::get('/print_post_table', [ContentController::class, 'printPostTable']);

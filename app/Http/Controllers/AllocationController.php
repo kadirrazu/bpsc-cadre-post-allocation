@@ -120,7 +120,7 @@ class AllocationController extends Controller
                 $cadre_abbr = $this->get_cadre_abbr_by_code($cadre_code);
 
                 // If this is a technical cadre ensure candidate has passed that subject
-                if ($cadre_type === 'TT') {
+                if ($cadre_type === 'TT' || $cadre_type === 'ED' || $cadre_type === 'ET') {
                     if (!is_array($technicalPassedInfo) || !in_array($cadre_abbr, array_keys($technicalPassedInfo))) {
                         continue;
                     }
@@ -721,7 +721,7 @@ class AllocationController extends Controller
     function fillRemainingQuotaVacancies(): void
     {
         
-        echo 'Status: NM Posting Started...<br>';
+        echo 'Status: NM Posting Started...<br><br>';
     
         DB::transaction(function () {
 
@@ -762,6 +762,9 @@ class AllocationController extends Controller
             | 3. Process CADRE by CADRE (THIS IS THE FIX)
             |--------------------------------------------------------------------------
             */
+
+            $nm_allocation_count = 0;
+
             foreach ($posts as $post) {
 
                 foreach (['CFF','EM','PHC'] as $quota) {
@@ -844,7 +847,16 @@ class AllocationController extends Controller
 
                         DB::table('posts')
                             ->where('id', $post->id)
-                            ->decrement($quotaCol);
+                            ->decrementEach([
+                                $quotaCol => 1, 
+                                'total_post_left' => 1
+                            ]);
+
+                        DB::table('posts')
+                            ->where('id', $post->id)
+                            ->increment('allocated_post_count');
+
+                        $nm_allocation_count++;
 
                         // update local state
                         $post->$quotaCol--;
@@ -854,8 +866,12 @@ class AllocationController extends Controller
                     }
                 }
             }
+
+            echo 'Status: Total NM Posting Done = '. $nm_allocation_count .'<br><br>';
+
         });
 
+        
         echo 'Status: NM Posting Done!<br>';
 
     }
