@@ -94,7 +94,7 @@ class AllocationController extends Controller
     {
         $queues = [];
 
-        $candidates = Candidate::orderBy('general_merit_position', 'ASC')->get();
+        $candidates = Candidate::where('allocation_status', '=', 'temporary')->orderBy('general_merit_position', 'ASC')->get();
 
         foreach ($candidates as $candidate) {
 
@@ -104,6 +104,26 @@ class AllocationController extends Controller
             }
 
             $choices = $this->parse_choices_list($candidate->choice_list);
+
+            // cadre choice must exist
+            $choiceRaw = preg_split('/\s+/', trim($candidate->choice_list));
+
+            //TRIM OFF THE RIGHT PART OF CHOICE LIST
+            $left = [];
+            $found = false;
+
+            foreach ($choiceRaw as $item) {
+                
+                if( $item === trim($this->get_cadre_abbr_by_code($candidate->assigned_cadre)) ) 
+                {
+                    $found = true;
+                    break;
+                }
+                
+                $left[] = $item;
+            }
+
+            $choices = $left;
 
             if (empty($choices)) continue;
 
@@ -224,7 +244,7 @@ class AllocationController extends Controller
                 // Decide seat type: prefer MQ then quotas
                 $allocated_quota = null;
 
-                if ($mq_posts_left > 0) {
+                /*if ($mq_posts_left > 0) {
                     $allocated_quota = 'MQ';
                 } else {
                     if ($candidateObj->has_quota == 1) {
@@ -246,6 +266,9 @@ class AllocationController extends Controller
                         }
                     }
                 }
+                */
+
+                $allocated_quota = 'SHIFTED-MQ';
 
                 if ($allocated_quota === null) {
                     // Cannot allocate any seat here for this candidate (no quota & MQ exhausted)
@@ -658,248 +681,7 @@ class AllocationController extends Controller
 
 
     /**Fill up Quota post from TEMPORARY-ALLOCATED candidates, if possible */
-    /**
-     * Multi-candidate chain upgrade for TEMPORARY allocations
-     * Runs until no further upgrades are possible
-     */
-    public function fillRemainingQuotaVacanciesWithTemporaryAllocatedCandidates(): void
-    {
-
-        echo 'Status: Shifting Started...<br><br>';
-
-        $shiftingCount = 0;
-
-        DB::transaction(function () {
-
-            do {
-                $upgradeHappened = false;
-
-                // Load all temporary allocations
-                $candidates = DB::table('candidates')
-                    ->where('allocation_status', 'temporary')
-                    ->lockForUpdate()
-                    ->get();
-
-                // Build cadre → candidate list map
-                $cadreBuckets = [];
-
-                foreach ($candidates as $cand) {
-                    /*if (empty($cand->choice_list) || empty($cand->assigned_cadre)) {
-                        continue;
-                    }*/
-
-                    $choices = array_map('strtoupper', preg_split('/\s+/', trim($cand->choice_list)));
-
-                    $currentIndex = array_search(get_cadre_abbr($cand->assigned_cadre), $choices, true);
-
-                    if ($currentIndex === false || $currentIndex === 0) {
-                        continue;
-                    }
-
-                    for ($i = 0; $i < $currentIndex; $i++) {
-                        if( get_cadre_code($choices[$i]) == null ){
-                            continue;
-                        }
-                        $cadreBuckets[get_cadre_code($choices[$i])][] = $cand;
-                    }
-
-                }
-
-
-                // Process each cadre independently
-                foreach ($cadreBuckets as $targetCadre => $bucket) {
-
-                    $cadreType = DB::table('cadres')
-                        ->where('cadre_code', $targetCadre)
-                        ->value('cadre_type');
-
-                    // Sort candidates correctly
-                    usort($bucket, function ($a, $b) use ($cadreType, $targetCadre) {
-                        if ($cadreType === 'GG') {
-                            return ($a->general_merit_position ?? PHP_INT_MAX)
-                                <=> ($b->general_merit_position ?? PHP_INT_MAX);
-                        }
-
-                        $ta = data_get(json_decode($a->technical_passed_cadres, true), get_cadre_abbr($targetCadre), PHP_INT_MAX);
-                        $tb = data_get(json_decode($b->technical_passed_cadres, true), get_cadre_abbr($targetCadre), PHP_INT_MAX);
-
-                        return $ta <=> $tb;
-                    });
-
-                    // Try to upgrade candidates in correct order
-                    foreach ($bucket as $cand) {
-
-                        // Technical eligibility check
-                        if ($cadreType !== 'GG') {
-                            $passed = json_decode($cand->technical_passed_cadres ?? '{}', true);
-                            if (!isset($passed[get_cadre_abbr($targetCadre)])) {
-                                continue;
-                            }
-                        }
-
-                        $post = DB::table('posts')
-                            ->where('cadre_code', $targetCadre)
-                            ->lockForUpdate()
-                            ->first();
-
-                        if (!$post) continue;
-
-                        $quotaMap = [
-                            'CFF' => 'cff_post_left',
-                            'EM'  => 'em_post_left',
-                            'PHC' => 'phc_post_left',
-                        ];
-
-                        foreach ($quotaMap as $quota => $column) {
-
-                            //if (!$cand->{'quota_' . strtolower($quota)}) continue;
-                            if ($post->$column <= 0) continue;
-
-                            //$shiftingCount++;
-
-                            // Restore old quota
-                            DB::table('posts')
-                                ->where('cadre_code', $cand->assigned_cadre)
-                                ->increment(strtolower($cand->assigned_status) . '_post_left');
-
-                            // Consume new quota
-                            DB::table('posts')
-                                ->where('id', $post->id)
-                                ->decrement($column);
-
-                            // Update candidate
-                            DB::table('candidates')
-                                ->where('id', $cand->id)
-                                ->update([
-                                    'assigned_cadre' => $targetCadre,
-                                    'general_status' => 'SHIFTED-TO-QUOTA-SEAT',
-                                    'assigned_status'   => $quota,
-                                    'allocation_status'   => 'temporary',
-                                    'updated_at'     => now(),
-                                ]);
-
-                            $upgradeHappened = true;
-                            break 2;
-                        }
-                    }
-                }
-
-            } while ($upgradeHappened);
-
-        });
-
-        //echo 'Status: Total Shifted = '. $shiftingCount .'<br><br>';
-
-        echo 'Status: Shifting Done!';
-    }
-
-    /*public function fillRemainingQuotaVacanciesWithTemporaryAllocatedCandidates(): void
-    {
-        DB::transaction(function () {
-
-            do {
-                $upgradeHappened = false;
-
-                // Always re-fetch fresh state
-                $candidates = DB::table('candidates')
-                    ->where('allocation_status', 'temporary')
-                    ->orderByRaw('COALESCE(general_merit_position, 999999) ASC')
-                    ->lockForUpdate()
-                    ->get();
-
-                foreach ($candidates as $candidate) {
-
-                    if (empty($candidate->assigned_cadre)) {
-                        continue;
-                    }
-
-                    $choices = preg_split('/\s+/', trim($candidate->choice_list));
-                    $choices = array_map('strtoupper', array_filter($choices));
-
-                    $currentIndex = array_search( $this->get_cadre_abbr_by_code($candidate->assigned_cadre), $choices, true);
-
-                    if ($currentIndex === false || $currentIndex === 0) {
-                        continue;
-                    }
-
-                    for ($i = 0; $i < $currentIndex; $i++) {
-
-                        $targetCadre = $choices[$i];
-
-                        // Lock target post
-                        $post = DB::table('posts')
-                            ->where('cadre_code', $this->get_cadre_code_by_abbr($targetCadre))
-                            ->lockForUpdate()
-                            ->first();
-
-                        if (!$post) {
-                            continue;
-                        }
-
-                        // Detect cadre type
-                        $cadreType = DB::table('cadres')
-                            ->where('cadre_code', $this->get_cadre_code_by_abbr($targetCadre))
-                            ->value('cadre_type');
-
-                        // Eligibility check
-                        if ($cadreType !== 'GG') {
-                            $passed = json_decode($candidate->technical_passed_cadres ?? '{}', true);
-                            if (!isset($passed[$targetCadre])) {
-                                continue;
-                            }
-                        }
-
-                        // Detect quota availability
-                        $quotaColumn = null;
-                        $quotaType   = null;
-
-                        if ($post->cff_post_left > 0) {
-                            $quotaColumn = 'cff_post_left';
-                            $quotaType   = 'CFF';
-                        } elseif ($post->em_post_left > 0) {
-                            $quotaColumn = 'em_post_left';
-                            $quotaType   = 'EM';
-                        } elseif ($post->phc_post_left > 0) {
-                            $quotaColumn = 'phc_post_left';
-                            $quotaType   = 'PHC';
-                        } else {
-                            continue;
-                        }
-
-                        // Restore old quota
-                        DB::table('posts')
-                            ->where('cadre_code', $candidate->assigned_cadre)
-                            ->increment(strtolower($candidate->assigned_quota) . '_post_left');
-
-                        // Consume new quota
-                        DB::table('posts')
-                            ->where('id', $post->id)
-                            ->decrement($quotaColumn);
-
-                        // Update candidate
-                        DB::table('candidates')
-                            ->where('id', $candidate->id)
-                            ->update([
-                                'assigned_cadre'   => $this->get_cadre_code_by_abbr($targetCadre),
-                                'general_status' => 'SHIFTED-TO-QUOTA-SEAT',
-                                'allocation_status'   => $quotaType,
-                                'updated_at'       => now(),
-                            ]);
-
-                        $upgradeHappened = true;
-
-                        // Stop at first successful upgrade for this candidate
-                        break;
-                    }
-                }
-
-            } while ($upgradeHappened); // 🔁 chain continues until stable
-
-        });
-    }*/
-
-
-    function fillRemainingQuotaVacanciesWithTemporaryAllocatedCandidates_OLD(): void
+    function fillRemainingQuotaVacanciesWithTemporaryAllocatedCandidates(): void
     {
         
         echo 'Status: Shifting Allocation Started...<br><br>';

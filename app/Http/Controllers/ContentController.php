@@ -59,6 +59,12 @@ class ContentController extends Controller
     }
 
 
+    public function processingMenu()
+    {
+        return view('data-processing-menu');
+    }
+
+
     public function report_download_txt()
     {
 

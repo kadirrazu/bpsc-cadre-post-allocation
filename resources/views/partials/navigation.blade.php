@@ -24,10 +24,7 @@
                                 <a class="nav-link" href="{{ url('/allocations') }}">Allocation Result</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url('/allocation/run') }}">Run General Allocation</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url('/allocation/run-nm-fill') }}">Run NM Allocation</a>
+                                <a class="nav-link" href="{{ url('/processing-menu') }}">Processing Menu</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url('/reports') }}">Reports</a>
