@@ -147,10 +147,10 @@
                                 @endphp
                             </td>
                             <td class="text-start">
-                                {!! preg_replace( $pattern, $tag, $candidate->choice_list_backup ) !!}
+                                {!! preg_replace( $pattern, $tag, $candidate->choice_list ) !!}
                             </td>
 
-                            <td></td>
+                            <td>{{ $candidate->general_status ?? '' }}</td>
                             
                         </tr>
 
