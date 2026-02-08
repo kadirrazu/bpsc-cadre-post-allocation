@@ -684,9 +684,6 @@ class AllocationController extends Controller
                 $cadreBuckets = [];
 
                 foreach ($candidates as $cand) {
-                    /*if (empty($cand->choice_list) || empty($cand->assigned_cadre)) {
-                        continue;
-                    }*/
 
                     $choices = array_map('strtoupper', preg_split('/\s+/', trim($cand->choice_list)));
 
@@ -745,6 +742,7 @@ class AllocationController extends Controller
                         if (!$post) continue;
 
                         $quotaMap = [
+                            'MQ' => 'mq_post_left',
                             'CFF' => 'cff_post_left',
                             'EM'  => 'em_post_left',
                             'PHC' => 'phc_post_left',

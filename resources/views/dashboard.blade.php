@@ -11,6 +11,7 @@
             <tr class="text-center">
                 <th>Sr.</th>
                 <th>Cadre Code</th>
+                <th>Cadre Abbr</th>
                 <th>Cadre</th>
                 <th>Cadre Type</th>
                 <th>Total Post</th>
@@ -18,6 +19,8 @@
                 <th>CFF</th>
                 <th>EM</th>
                 <th>PHC</th>
+                <th>SHIFTED</th>
+                <th>NM</th>
                 <th>Allocated Post</th>
             </tr>
 
@@ -42,41 +45,56 @@
             <tr class="text-center">
                 <td>{{ $loop->index + 1 }}</td>
                 <td>{{ $post->cadre_code }}</td>
-                <td>
+                <td class="text-center">
                   {{ $cadres->where('cadre_code', $post->cadre_code)->first()->cadre_abbr }}
+                </td>
+                <td class="text-start">
+                  {{ $cadres->where('cadre_code', $post->cadre_code)->first()->cadre_name }}
                 </td>
                 <td>
                   {{ $cadres->where('cadre_code', $post->cadre_code)->first()->cadre_type }}
                 </td>
                 <td>
-                  {{ $post->total_post }}
+                  {{ $post->total_post }}<br>
                   <span class="text-danger"> [ {{ $post->total_post_left }} ]</span>
                   @php $total_sum += $post->total_post @endphp
                   @php $total_left_sum += $post->total_post_left @endphp
                 </td>
                 <td>
-                  {{ $post->mq_post }}
+                  {{ $post->mq_post }}<br>
                   <span class="text-danger"> [ {{ $post->mq_post_left }} ]</span>
                   @php $mq_sum += $post->mq_post @endphp
                   @php $mq_left_sum += $post->mq_post_left @endphp
                 </td>
                 <td>
-                  {{ $post->cff_post }}
+                  {{ $post->cff_post }}<br>
                   <span class="text-danger"> [ {{ $post->cff_post_left }} ]</span>
                   @php $cff_sum += $post->cff_post @endphp
                   @php $cff_left_sum += $post->cff_post_left @endphp
                 </td>
                 <td>
-                  {{ $post->em_post }}
+                  {{ $post->em_post }}<br>
                   <span class="text-danger"> [ {{ $post->em_post_left }} ]</span>
                   @php $em_sum += $post->em_post @endphp
                   @php $em_left_sum += $post->em_post_left @endphp
                 </td>
                 <td>
-                  {{ $post->phc_post }}
+                  {{ $post->phc_post }}<br>
                   <span class="text-danger"> [ {{ $post->phc_post_left }} ]</span>
                   @php $phc_sum += $post->phc_post @endphp
                   @php $phc_left_sum += $post->phc_post_left @endphp
+                </td>
+                <td>
+                  <?php 
+                    $shifted = \App\Models\Candidate::whereNotNull('assigned_cadre')->where('assigned_cadre', '=', $post->cadre_code)->where('general_status', 'LIKE', '%SHIFT%')->count(); 
+                    echo $shifted;
+                  ?>
+                </td>
+                <td>
+                  <?php 
+                    $nm =  \App\Models\Candidate::whereNotNull('assigned_cadre')->where('assigned_cadre', '=', $post->cadre_code)->where('assigned_status', '=', 'NM')->count(); 
+                    echo $nm;
+                  ?>
                 </td>
                 <td>
                   {{ $post->allocated_post_count ?? '0' }}
@@ -92,25 +110,32 @@
                 <th>-</th>
                 <th>-</th>
                 <th>-</th>
+                <th>-</th>
                 <th>
-                  {{ $total_sum }}
+                  {{ $total_sum }}<br>
                   <span class="text-danger"> [ {{ $total_left_sum }} ]</span>
                 </th>
                 <th>
-                  {{ $mq_sum }}
+                  {{ $mq_sum }}<br>
                   <span class="text-danger"> [ {{ $mq_left_sum }} ]</span>
                 </th>
                 <th>
-                  {{ $cff_sum }}
+                  {{ $cff_sum }}<br>
                   <span class="text-danger"> [ {{ $cff_left_sum }} ]</span>
                 </th>
                 <th>
-                  {{ $em_sum }}
+                  {{ $em_sum }}<br>
                   <span class="text-danger"> [ {{ $em_left_sum }} ]</span>
                 </th>
                 <th>
-                  {{ $phc_sum }}
+                  {{ $phc_sum }}<br>
                   <span class="text-danger"> [ {{ $phc_left_sum }} ]</span>
+                </th>
+                <th>
+                  -
+                </th>
+                <th>
+                  -
                 </th>
                 <th>
                   {{ $allocated_sum }}
