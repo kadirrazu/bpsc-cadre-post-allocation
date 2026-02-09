@@ -12,14 +12,14 @@
 
         <ul class="list-group list-unstyled">
           <li class="nav-item list-group-item">
-              <a class="nav-link list-unstyled" href="{{ url('/allocation/run') }}" target="_blank">1. Run General Allocation</a>
+              <a class="nav-link list-unstyled" href="{{ url('/allocation/run') }}" target="_blank">Step 1. Run General Allocation</a>
           </li>
           <li class="nav-item list-group-item">
-              <a class="nav-link" href="{{ url('/allocation/run-shifting') }}" target="_blank">2. Run Shifting Allocation</a>
+              <a class="nav-link" href="{{ url('/allocation/run-shifting') }}" target="_blank">Step 2. Run Shifting and NM Allocation</a>
           </li>
-          <li class="nav-item list-group-item">
+          <!--<li class="nav-item list-group-item">
               <a class="nav-link" href="{{ url('/allocation/run-nm-fill') }}" target="_blank">3. Run NM Allocation</a>
-          </li>
+          </li>-->
         </ul>
 
       </div>

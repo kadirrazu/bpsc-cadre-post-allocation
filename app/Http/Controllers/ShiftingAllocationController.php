@@ -20,7 +20,8 @@ class ShiftingAllocationController extends Controller
     private array $postsByCode = []; //Snapshot for this iteration
 
     //Variable for counting total shifting
-    private $shifingCountTotal = 0;
+    public $shiftingCountTotal = 0;
+    public $shiftingPossible = true;
 
     public function runShiftingAllocation()
     {
@@ -29,18 +30,16 @@ class ShiftingAllocationController extends Controller
 
         $this->loadCadresAndPosts();
 
-        echo "= STARTING Inter Cadre Shifting...";
+        echo "= STARTING Inter Cadre Shifting and NM Allocation...<br><br>";
 
         while( $iterationContinue )
         {
 
-            $numOfAssignedCandidates = Candidate::whereNotNull('assigned_cadre')->count();
+            $startingCountShifting = $this->shiftingCountTotal;
 
             $queues = $this->generateAllocationQueues();
 
             $sortedQueues = $this->sortAllocationQueues($queues);
-
-            dd($sortedQueues);
 
             $allocationResult = $this->allocateCadre($sortedQueues);
 
@@ -50,11 +49,17 @@ class ShiftingAllocationController extends Controller
 
             echo "= Iteration " . $loopCount . " done successfully...<br><br>";
 
+            $endingCountShifting = $this->shiftingCountTotal;
+
             $numOfAssignedCandidatesAfterIteration = Candidate::whereNotNull('assigned_cadre')->count();
+
+            echo "= Shifting from " . $startingCountShifting . " to " . $endingCountShifting . "...<br><br>";
+
+            echo "= Allocation Count Caps at " . $numOfAssignedCandidatesAfterIteration . "<br><br>";
 
             // Stop if nothing changed for a few iterations (safety). You can adjust loopCount threshold.
             //Need to detect database change here; then need to stop this loop when no database change happen.
-            if( $numOfAssignedCandidates == $numOfAssignedCandidatesAfterIteration && $loopCount > 15 )
+            if( $startingCountShifting <= $endingCountShifting && $loopCount > 15 )
             {
                 $iterationContinue = false;
             }
@@ -66,7 +71,7 @@ class ShiftingAllocationController extends Controller
 
         }
 
-        echo "= END OF Inter Cadre Shifting...";
+        echo "= END OF Inter Cadre Shifting and NM Allocation!";
 
 
     }
@@ -104,7 +109,12 @@ class ShiftingAllocationController extends Controller
     {
         $queues = [];
 
-        $candidates = Candidate::where('allocation_status', '!=', 'final')->orderBy('general_merit_position', 'ASC')->get();
+        $excludeAllocationStatus = 'final';
+
+        $candidates = Candidate::where(function ($query) use ($excludeAllocationStatus) {
+            $query->where('allocation_status', '!=', $excludeAllocationStatus)
+                ->orWhereNull('allocation_status');
+        })->get();
 
         foreach( $candidates as $candidate )
         {
@@ -489,6 +499,9 @@ class ShiftingAllocationController extends Controller
                         'higher_choices' => implode(" ", $cand['waiting_cadres']),
                         'general_status' => 'SHIFTED-TO-QUOTA-VACANT-SEAT',
                     ]);
+
+                    $this->shiftingPossible = true;
+                    $this->shiftingCountTotal++;
 
                     // Update the Post row for the new cadre (decrement appropriate bucket)
                     $postRow = Post::where('cadre_code', $newCadre)->lockForUpdate()->first();

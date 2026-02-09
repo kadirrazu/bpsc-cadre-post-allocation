@@ -12,27 +12,26 @@
                 <th>Sr.</th>
                 <th>Cadre Code</th>
                 <th>Cadre Abbr</th>
-                <th style="max-width: 400px;">Cadre Name</th>
+                <th style="max-width: 350px;">Cadre Name</th>
                 <th>Cadre Type</th>
                 <th>
                   Total Post<br>
-                  <span class="text-danger"> [ EMPTY ]</span>
+                  <span class="text-danger"> [EMPTY]</span>
                 </th>
                 <th>MQ Post<br>
-                  <span class="text-danger"> [ EMPTY ]</span>
+                  <span class="text-danger"> [EMPTY]</span>
                 </th>
                 <th>CFF Post<br>
-                  <span class="text-danger"> [ EMPTY ]</span>
+                  <span class="text-danger"> [EMPTY]</span>
                 </th>
                 <th>EM Post<br>
-                  <span class="text-danger"> [ EMPTY ]</span>
+                  <span class="text-danger"> [EMPTY]</span>
                 </th>
                 <th>PHC Post</th>
-                <th>SHIFTED</th>
-                <th>NM</th>
+                <th>SHIFT & NM</th>
                 <th>
                   Allocated Post <br>
-                  <span class="text-info"> [ EMPTY ]</span>
+                  <span class="text-info"> [EMPTY]</span>
                 </th>
             </tr>
 
@@ -63,7 +62,7 @@
                 <td class="text-center">
                   {{ $cadres->where('cadre_code', $post->cadre_code)->first()->cadre_abbr }}
                 </td>
-                <td class="text-start" style="max-width: 400px;">
+                <td class="text-start" style="max-width: 350px;">
                   {{ $cadres->where('cadre_code', $post->cadre_code)->first()->cadre_name }}
                 </td>
                 <td>
@@ -107,13 +106,6 @@
                   ?>
                 </td>
                 <td>
-                  <?php 
-                    $nm =  \App\Models\Candidate::whereNotNull('assigned_cadre')->where('assigned_cadre', '=', $post->cadre_code)->where('general_status', 'LIKE', '%NM-ALLOCATION%')->count();
-                    echo $nm;
-                    $nmSum += $nm;
-                  ?>
-                </td>
-                <td>
                   {{ $post->allocated_post_count ?? '0' }}<br>
                   <span class="text-info"> [ {{ (int)$post->total_post - (int)$post->allocated_post_count }} ]</span>
                   @php $allocated_sum += $post->allocated_post_count @endphp
@@ -151,9 +143,6 @@
                 </th>
                 <th>
                   {{ $shiftingSum }}
-                </th>
-                <th>
-                  {{ $nmSum }}
                 </th>
                 <th>
                   {{ $allocated_sum }}
