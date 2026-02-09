@@ -40,6 +40,8 @@ class ShiftingAllocationController extends Controller
 
             $sortedQueues = $this->sortAllocationQueues($queues);
 
+            dd($sortedQueues);
+
             $allocationResult = $this->allocateCadre($sortedQueues);
 
             $solvedResult = $this->solveMultipleAllocations($allocationResult);
@@ -52,7 +54,7 @@ class ShiftingAllocationController extends Controller
 
             // Stop if nothing changed for a few iterations (safety). You can adjust loopCount threshold.
             //Need to detect database change here; then need to stop this loop when no database change happen.
-            if( $numOfAssignedCandidates == $numOfAssignedCandidatesAfterIteration && $loopCount > 5 )
+            if( $numOfAssignedCandidates == $numOfAssignedCandidatesAfterIteration && $loopCount > 15 )
             {
                 $iterationContinue = false;
             }
@@ -102,7 +104,7 @@ class ShiftingAllocationController extends Controller
     {
         $queues = [];
 
-        $candidates = Candidate::whereNotNull('assigned_cadre')->where('allocation_status', '=', 'temporary')->orderBy('general_merit_position', 'ASC')->get();
+        $candidates = Candidate::where('allocation_status', '!=', 'final')->orderBy('general_merit_position', 'ASC')->get();
 
         foreach( $candidates as $candidate )
         {
