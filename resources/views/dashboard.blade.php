@@ -6,22 +6,34 @@
 
       <div class="starter-template">
       
-        <table class="table table-striped table-bordered">
+        <table class="table table-striped table-bordered post-count-table">
 
             <tr class="text-center">
                 <th>Sr.</th>
                 <th>Cadre Code</th>
                 <th>Cadre Abbr</th>
-                <th>Cadre</th>
+                <th style="max-width: 400px;">Cadre Name</th>
                 <th>Cadre Type</th>
-                <th>Total Post</th>
-                <th>MQ</th>
-                <th>CFF</th>
-                <th>EM</th>
-                <th>PHC</th>
+                <th>
+                  Total Post<br>
+                  <span class="text-danger"> [ EMPTY ]</span>
+                </th>
+                <th>MQ Post<br>
+                  <span class="text-danger"> [ EMPTY ]</span>
+                </th>
+                <th>CFF Post<br>
+                  <span class="text-danger"> [ EMPTY ]</span>
+                </th>
+                <th>EM Post<br>
+                  <span class="text-danger"> [ EMPTY ]</span>
+                </th>
+                <th>PHC Post</th>
                 <th>SHIFTED</th>
                 <th>NM</th>
-                <th>Allocated Post</th>
+                <th>
+                  Allocated Post <br>
+                  <span class="text-info"> [ EMPTY ]</span>
+                </th>
             </tr>
 
             @php
@@ -38,6 +50,9 @@
               $phc_left_sum = 0; 
               $allocated_sum = 0; 
 
+              $shiftingSum = 0;
+              $nmSum = 0;
+
             @endphp
 
             @foreach( $posts as $post )
@@ -48,7 +63,7 @@
                 <td class="text-center">
                   {{ $cadres->where('cadre_code', $post->cadre_code)->first()->cadre_abbr }}
                 </td>
-                <td class="text-start">
+                <td class="text-start" style="max-width: 400px;">
                   {{ $cadres->where('cadre_code', $post->cadre_code)->first()->cadre_name }}
                 </td>
                 <td>
@@ -88,16 +103,19 @@
                   <?php 
                     $shifted = \App\Models\Candidate::whereNotNull('assigned_cadre')->where('assigned_cadre', '=', $post->cadre_code)->where('general_status', 'LIKE', '%SHIFT%')->count(); 
                     echo $shifted;
+                    $shiftingSum += $shifted;
                   ?>
                 </td>
                 <td>
                   <?php 
-                    $nm =  \App\Models\Candidate::whereNotNull('assigned_cadre')->where('assigned_cadre', '=', $post->cadre_code)->where('assigned_status', '=', 'NM')->count(); 
+                    $nm =  \App\Models\Candidate::whereNotNull('assigned_cadre')->where('assigned_cadre', '=', $post->cadre_code)->where('general_status', 'LIKE', '%NM-ALLOCATION%')->count();
                     echo $nm;
+                    $nmSum += $nm;
                   ?>
                 </td>
                 <td>
-                  {{ $post->allocated_post_count ?? '0' }}
+                  {{ $post->allocated_post_count ?? '0' }}<br>
+                  <span class="text-info"> [ {{ (int)$post->total_post - (int)$post->allocated_post_count }} ]</span>
                   @php $allocated_sum += $post->allocated_post_count @endphp
                 </td>
             </tr>
@@ -132,10 +150,10 @@
                   <span class="text-danger"> [ {{ $phc_left_sum }} ]</span>
                 </th>
                 <th>
-                  -
+                  {{ $shiftingSum }}
                 </th>
                 <th>
-                  -
+                  {{ $nmSum }}
                 </th>
                 <th>
                   {{ $allocated_sum }}

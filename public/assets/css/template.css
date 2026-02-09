@@ -5,6 +5,10 @@ body {
   padding: 3rem 1.5rem;
 }
 
+.post-count-table{
+    font-size: 8pt;
+}
+
 /********************  Preloader Demo-2 *******************/
 .preloader2{height:105px;width:105px;margin:0 auto;animation:loader-container 10s linear infinite}
 .preloader2>div{width:44px;height:44px;box-shadow:0 0 8px -2px rgba(0,0,0,.3);position:absolute;animation-duration:1.5s;animation-timing-function:ease-in-out;animation-iteration-count:infinite}

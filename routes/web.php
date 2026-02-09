@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\DB;
 
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\AllocationController;
+use App\Http\Controllers\ShiftingAllocationController;
+use App\Http\Controllers\NMAllocationController;
 
 //Helper Function
 function get_cadre_abbr($cadre_code)
@@ -42,8 +44,8 @@ Route::get('/candidates', [ContentController::class, 'candidates']);
 Route::get('/allocations', [ContentController::class, 'allocations']);
 Route::get('/print-allocation', [ContentController::class, 'allocations_print']);
 Route::get('/allocation/run', [AllocationController::class, 'runAllocation']);
-Route::get('//allocation/run-shifting', [AllocationController::class, 'fillRemainingQuotaVacanciesWithTemporaryAllocatedCandidates']);
-Route::get('/allocation/run-nm-fill', [AllocationController::class, 'fillRemainingQuotaVacanciesWithNationalMerit']);
+Route::get('/allocation/run-shifting', [ShiftingAllocationController::class, 'runShiftingAllocation']);
+Route::get('/allocation/run-nm-fill', [NMAllocationController::class, 'runNMAllocation']);
 
 Route::get('/reports', [ContentController::class, 'reports']);
 Route::get('/processing-menu', [ContentController::class, 'processingMenu']);
