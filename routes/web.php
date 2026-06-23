@@ -55,4 +55,16 @@ Route::get('/report-text-file-with-all-status', [ContentController::class, 'repo
 Route::get('/report-text-file-non-cadre', [ContentController::class, 'report_download_txt_non_cadre']);
 Route::get('/report-text-file-by-merit-position', [ContentController::class, 'report_download_txt_only_merit_position']);
 Route::get('/report-pdf-file-cadre-wise', [ContentController::class, 'download_allocation_pdf']);
+
+Route::get('/report-pdf-file-merit-wise-all-cadre-without-tt', [ContentController::class, 'download_allocation_pdf_all_cadre_without_tt']);
+Route::get('/report-pdf-file-merit-wise-all-cadre-only-tt', [ContentController::class, 'download_allocation_pdf_all_cadre_only_tt']);
+
+Route::get('/report-pdf-file-merit-wise-all-cadre-without-tt-only-quota', [ContentController::class, 'download_allocation_pdf_all_cadre_without_tt_only_quota']);
+Route::get('/report-pdf-file-merit-wise-all-cadre-only-tt-only-quota', [ContentController::class, 'download_allocation_pdf_all_cadre_only_tt_only_quota']);
+
+Route::get('/report-pdf-file-merit-wise-all-cadre-without-tt-tabulation', [ContentController::class, 'download_allocation_pdf_all_cadre_without_tt_tabulation']);
+Route::get('/report-pdf-file-merit-wise-all-cadre-only-tt-tabulation', [ContentController::class, 'download_allocation_pdf_all_cadre_only_tt_tabulation']);
+
+Route::get('/report-pdf-file-cadre-wise-all-tech-passed', [ContentController::class, 'report_pdf_file_cadre_wise_all_tech_passed']);
+
 Route::get('/print_post_table', [ContentController::class, 'printPostTable']);

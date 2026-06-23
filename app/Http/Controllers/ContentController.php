@@ -498,6 +498,125 @@ class ContentController extends Controller
 
     }
 
+    public function download_allocation_pdf_all_cadre_without_tt() {
+
+        $allocations = DB::table('candidates')
+                    ->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
+                    ->whereNotNull('candidates.assigned_cadre')
+                    ->where('candidates.cadre_category', '!=', 'TT')
+                    ->orderBy('candidates.general_merit_position', 'ASC')
+                    ->orderBy('candidates.technical_merit_position', 'ASC')
+                    ->get();
+
+        return view('reports.allocation-result-all-cadre-merit-wise', [
+            'allocations' => $allocations,
+        ]);
+
+    }
+
+    public function download_allocation_pdf_all_cadre_only_tt() {
+
+        $allocations = DB::table('candidates')
+                    ->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
+                    ->where('candidates.cadre_category', '=', 'TT')
+                    ->orWhere('candidates.cadre_category', '=', 'GT')
+                    ->whereNotNull('candidates.assigned_cadre')
+                    ->orderBy('candidates.technical_merit_position', 'ASC')
+                    ->get();
+
+        return view('reports.allocation-result-all-cadre-merit-wise-tech', [
+            'allocations' => $allocations,
+        ]);
+
+    }
+
+    /**Tabulation */
+    public function download_allocation_pdf_all_cadre_without_tt_tabulation() {
+
+        $allocations = DB::table('candidates')
+                    //->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
+                    ->where('candidates.general_merit_position', '!=', '')
+                    ->where('candidates.cadre_category', '!=', 'TT')
+                    ->orderBy('candidates.general_merit_position', 'ASC')
+                    ->get();
+
+        return view('reports.allocation-result-all-cadre-merit-wise-tabulation', [
+            'allocations' => $allocations,
+        ]);
+
+    }
+
+    public function download_allocation_pdf_all_cadre_only_tt_tabulation() {
+
+        $allocations = DB::table('candidates')
+                    //->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
+                    ->where('candidates.technical_merit_position', '!=', 0)
+                    ->where('candidates.cadre_category', '!=', 'GG')
+                    ->orderBy('candidates.technical_merit_position', 'ASC')
+                    ->get();
+
+        return view('reports.allocation-result-all-cadre-merit-wise-tech-tabulation', [
+            'allocations' => $allocations,
+        ]);
+
+    }
+
+    /**Only Quota*/
+    public function download_allocation_pdf_all_cadre_without_tt_only_quota() {
+
+        $allocations = DB::table('candidates')
+                    ->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
+                    ->whereNotNull('candidates.assigned_cadre')
+                    ->where('candidates.cadre_category', '!=', 'TT')
+                    ->where('candidates.assigned_status', '!=', 'MQ')
+                    ->orderBy('candidates.general_merit_position', 'ASC')
+                    ->orderBy('candidates.technical_merit_position', 'ASC')
+                    ->get();
+
+        return view('reports.allocation-result-all-cadre-merit-wise-only-quota', [
+            'allocations' => $allocations,
+        ]);
+
+    }
+
+    public function download_allocation_pdf_all_cadre_only_tt_only_quota() {
+
+        $allocations = DB::table('candidates')
+                    ->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
+                    ->whereNotNull('candidates.assigned_cadre')
+                    ->where('candidates.cadre_category', '=', 'TT')
+                    ->orWhere('candidates.cadre_category', '=', 'GT')
+                    ->where('candidates.assigned_status', '!=', 'MQ')
+                    ->orderBy('candidates.general_merit_position', 'ASC')
+                    ->orderBy('candidates.technical_merit_position', 'ASC')
+                    ->get();
+
+        return view('reports.allocation-result-all-cadre-merit-wise-tech-only-quota', [
+            'allocations' => $allocations,
+        ]);
+
+    }
+
+    /**Cadre Wise All Tech Passed Candidate List */
+    public function report_pdf_file_cadre_wise_all_tech_passed() {
+
+        $candidates = DB::table('candidates')
+                    ->Where('candidates.cadre_category', '!=', 'GG')
+                    ->orderBy('candidates.technical_merit_position', 'ASC')
+                    ->get();
+
+        $cadres = DB::table('cadres')
+                    ->Where('cadres.cadre_type', '!=', 'GG')
+                    ->orderBy('cadres.cadre_code', 'ASC')
+                    ->get();
+
+        return view('reports.report-pdf-file-cadre-wise-all-tech-passed', [
+            'candidates' => $candidates,
+            'cadres' => $cadres,
+        ]);
+
+    }
+
     public function printPostTable()
     {
 
