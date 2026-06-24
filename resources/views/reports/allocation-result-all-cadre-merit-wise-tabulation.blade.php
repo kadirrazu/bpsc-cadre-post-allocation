@@ -68,14 +68,16 @@
                             $pattern = "/\b" . htmlspecialchars($substring) . "\b/i";
 
                             $trColorCode = '';
+                            $trBgColorCode = '';
 
                             if( !isset($cadre_abbr) || $cadre_abbr == ''){
-                                $trColorCode = '#FF1493';
+                                $trColorCode = '#aa055d';
+                                $trBgColorCode = '#e9e4e6';
                             }
 
                         @endphp
 
-                        <tr style="color:<?php echo $trColorCode; ?>" class="">
+                        <tr style="color:<?php echo $trColorCode; ?>; background-color: <?php echo $trBgColorCode; ?>">
                             <td class="text-center">{{ $serial }}</td>
                             <!--<td class="text-center">{{ $candidate->reg }}</td>-->
                             <td class="text-center text-success fw-bold">{{ $cadre_abbr }}</td>

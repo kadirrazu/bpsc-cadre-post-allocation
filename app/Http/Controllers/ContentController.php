@@ -585,7 +585,6 @@ class ContentController extends Controller
                     ->join('cadres', 'cadres.cadre_code', '=', 'candidates.assigned_cadre')
                     ->whereNotNull('candidates.assigned_cadre')
                     ->where('candidates.cadre_category', '=', 'TT')
-                    ->orWhere('candidates.cadre_category', '=', 'GT')
                     ->where('candidates.assigned_status', '!=', 'MQ')
                     ->orderBy('candidates.general_merit_position', 'ASC')
                     ->orderBy('candidates.technical_merit_position', 'ASC')
